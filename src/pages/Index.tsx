@@ -1,6 +1,6 @@
 import { Suspense, useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { OrbitControls, Sky, Environment, useTexture } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Sky, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface JoystickState {
@@ -299,13 +299,11 @@ function CarsOnBridge() {
 }
 
 function Bridge({ position, rotation }: { position: [number, number, number], rotation: [number, number, number] }) {
-  const texture = useTexture('https://cdn.poehali.dev/files/90e41c17-bdf1-4a41-bf83-d6040451069a.jpeg');
-  
   return (
     <group position={position} rotation={rotation}>
       <mesh position={[0, 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[50, 0.5, 8]} />
-        <meshStandardMaterial map={texture} metalness={0.3} roughness={0.7} />
+        <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.4} />
       </mesh>
       
       {[-20, -10, 0, 10, 20].map((x, i) => (
@@ -340,26 +338,17 @@ function Bridge({ position, rotation }: { position: [number, number, number], ro
   );
 }
 
-function Building({ position, size, color, textureUrl }: { 
+function Building({ position, size, color }: { 
   position: [number, number, number], 
   size: [number, number, number],
-  color: string,
-  textureUrl?: string
+  color: string
 }) {
-  let texture;
-  try {
-    texture = textureUrl ? useTexture(textureUrl) : null;
-  } catch {
-    texture = null;
-  }
-  
   return (
     <group position={position}>
       <mesh position={[0, size[1] / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={size} />
         <meshStandardMaterial 
-          map={texture || undefined}
-          color={texture ? '#ffffff' : color} 
+          color={color} 
           roughness={0.7} 
           metalness={0.3} 
         />
@@ -374,13 +363,11 @@ function Building({ position, size, color, textureUrl }: {
 }
 
 function Church({ position }: { position: [number, number, number] }) {
-  const texture = useTexture('https://cdn.poehali.dev/files/acf66156-02ef-416b-a665-ba155b86b286.jpeg');
-  
   return (
     <group position={position}>
       <mesh position={[0, 5, 0]} castShadow receiveShadow>
         <boxGeometry args={[8, 10, 8]} />
-        <meshStandardMaterial map={texture} />
+        <meshStandardMaterial color="#f3f4f6" />
       </mesh>
       
       <mesh position={[0, 12, 0]} castShadow>
@@ -490,14 +477,12 @@ function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMo
         position={[-30, 0, -50]} 
         size={[8, 15, 8]} 
         color="#e5e7eb"
-        textureUrl="https://cdn.poehali.dev/files/f13c35c5-5656-433c-9c5e-0c50f6dd4b72.jpeg"
       />
       <Building position={[-45, 0, -45]} size={[6, 12, 6]} color="#f3f4f6" />
       <Building 
         position={[40, 0, 50]} 
         size={[10, 20, 10]} 
         color="#d1d5db"
-        textureUrl="https://cdn.poehali.dev/files/b4af7ac0-96e9-4ae1-9fc2-0e3f8b4f10f8.jpeg"
       />
       <Building position={[50, 0, 35]} size={[7, 18, 7]} color="#e5e7eb" />
       <Building position={[-50, 0, 40]} size={[9, 16, 9]} color="#f3f4f6" />
