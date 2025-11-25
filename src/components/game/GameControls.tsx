@@ -70,13 +70,20 @@ export function VirtualJoystick({ onMove }: { onMove: (x: number, z: number) => 
 
 export function MiniMap({ playerPos }: { playerPos: [number, number, number] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef(0);
   
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      desynchronized: true
+    });
     if (!ctx) return;
+    
+    frameRef.current++;
+    if (frameRef.current % 2 !== 0) return;
     
     ctx.clearRect(0, 0, 150, 150);
     

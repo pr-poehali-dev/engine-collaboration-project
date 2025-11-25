@@ -19,8 +19,8 @@ import {
   Rocks 
 } from './TerrainGenerator';
 import type { JoystickState } from './GameControls';
-import { useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useMemo, useEffect, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 
 function TexturePreloader() {
   useTexture.preload('https://cdn.poehali.dev/files/5e3ce736-91c3-4bc0-a772-218476e56221.jpeg');
@@ -31,16 +31,77 @@ function TexturePreloader() {
   return null;
 }
 
+function RenderPipeline() {
+  const { gl, scene, camera } = useThree();
+  const frameCount = useRef(0);
+  
+  useEffect(() => {
+    console.log('[Pipeline] Initializing render pipeline...');
+    
+    gl.autoClear = true;
+    gl.autoClearColor = true;
+    gl.autoClearDepth = true;
+    gl.autoClearStencil = true;
+    
+    console.log('[Pipeline] Buffers configured:', {
+      autoClear: gl.autoClear,
+      sortObjects: gl.sortObjects
+    });
+  }, [gl]);
+  
+  useFrame(() => {
+    frameCount.current++;
+    
+    if (frameCount.current % 60 === 0) {
+      console.log('[Pipeline] Frame checkpoint:', {
+        frame: frameCount.current,
+        drawCalls: gl.info.render.calls,
+        triangles: gl.info.render.triangles,
+        textures: gl.info.memory.textures,
+        geometries: gl.info.memory.geometries
+      });
+    }
+    
+    gl.clearColor();
+    gl.clearDepth();
+  });
+  
+  return null;
+}
+
 export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMove: (pos: [number, number, number]) => void }) {
   const frameSkip = useMemo(() => ({ count: 0 }), []);
   const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || 'ontouchstart' in window);
+  const { gl, camera } = useThree();
+  
+  useEffect(() => {
+    console.log('[Scene] Scene mounted with camera:', {
+      position: camera.position,
+      fov: (camera as THREE.PerspectiveCamera).fov,
+      near: camera.near,
+      far: camera.far
+    });
+    
+    if (gl.getContext()) {
+      const glContext = gl.getContext() as WebGLRenderingContext;
+      console.log('[Scene] WebGL capabilities:', {
+        vendor: glContext.getParameter(glContext.VENDOR),
+        renderer: glContext.getParameter(glContext.RENDERER),
+        version: glContext.getParameter(glContext.VERSION),
+        maxTextureSize: glContext.getParameter(glContext.MAX_TEXTURE_SIZE),
+        maxVertexAttribs: glContext.getParameter(glContext.MAX_VERTEX_ATTRIBS)
+      });
+    }
+  }, [gl, camera]);
   
   useFrame(() => {
     frameSkip.count++;
   });
+  
   return (
     <>
       <TexturePreloader />
+      <RenderPipeline />
       <color attach="background" args={['#87ceeb']} />
       
       <ambientLight intensity={1} />
@@ -48,13 +109,15 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
         position={[50, 50, 50]} 
         intensity={0.8} 
         castShadow={!isMobile}
-        shadow-mapSize-width={256}
-        shadow-mapSize-height={256}
+        shadow-mapSize-width={isMobile ? 128 : 256}
+        shadow-mapSize-height={isMobile ? 128 : 256}
         shadow-camera-far={80}
         shadow-camera-left={-40}
         shadow-camera-right={40}
         shadow-camera-top={40}
         shadow-camera-bottom={-40}
+        shadow-bias={-0.0001}
+        shadow-normalBias={0.02}
       />
       
       <fog attach="fog" args={['#87ceeb', 30, 150]} />

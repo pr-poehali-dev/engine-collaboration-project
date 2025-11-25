@@ -21,19 +21,46 @@ export default function Index() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleCreated = useCallback(({ gl }: any) => {
+  const handleCreated = useCallback(({ gl, scene, camera }: any) => {
+    console.log('[Init] Starting WebGL initialization...');
+    
+    gl.setClearColor(new THREE.Color('#87ceeb'));
+    gl.setPixelRatio(window.devicePixelRatio);
+    
+    gl.shadowMap.enabled = !isMobile;
+    gl.shadowMap.type = THREE.PCFSoftShadowMap;
+    
+    gl.capabilities.logarithmicDepthBuffer = false;
+    gl.capabilities.maxTextures = Math.min(gl.capabilities.maxTextures, 16);
+    
+    if (camera) {
+      camera.near = 0.1;
+      camera.far = 1000;
+      camera.updateProjectionMatrix();
+      console.log('[Init] Camera matrices updated');
+    }
+    
+    console.log('[Init] WebGL context ready:', {
+      renderer: gl.info.render,
+      memory: gl.info.memory,
+      capabilities: {
+        maxTextures: gl.capabilities.maxTextures,
+        maxVertexUniforms: gl.capabilities.maxVertexUniforms
+      }
+    });
+    
     gl.domElement.addEventListener('webglcontextlost', (e: Event) => {
       e.preventDefault();
-      console.log('WebGL context lost, attempting restore...');
+      console.error('[WebGL] Context lost, attempting restore...');
       setGlError(true);
       setTimeout(() => setGlError(false), 100);
     });
     
     gl.domElement.addEventListener('webglcontextrestored', () => {
-      console.log('WebGL context restored');
+      console.log('[WebGL] Context restored successfully');
       setGlError(false);
     });
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className="w-full h-screen relative">
