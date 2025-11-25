@@ -16,27 +16,24 @@ function generateHeightMap(width: number, depth: number, riverZ: number): Float3
       
       let height = 0;
       
-      if (distanceFromRiver < 20) {
-        height = -3 + (distanceFromRiver / 20) * 5;
+      if (distanceFromRiver < 18) {
+        height = -2.5 + (distanceFromRiver / 18) * 4.5;
       } else {
-        const noise1 = Math.sin(x * 0.05) * Math.cos(z * 0.05) * 3;
-        const noise2 = Math.sin(x * 0.1 + z * 0.1) * 2;
-        const noise3 = Math.sin(x * 0.02) * Math.cos(z * 0.03) * 5;
+        const noise1 = Math.sin(x * 0.03) * Math.cos(z * 0.03) * 2;
+        const noise2 = Math.sin(x * 0.08 + z * 0.08) * 1.5;
         
-        height = 2 + noise1 + noise2 + noise3;
+        height = 2 + noise1 + noise2;
         
-        const hillCenter1X = 60;
-        const hillCenter1Z = 70;
-        const dist1 = Math.sqrt(Math.pow(x - hillCenter1X, 2) + Math.pow(z - hillCenter1Z, 2));
-        if (dist1 < 30) {
-          height += (1 - dist1 / 30) * 8;
+        if (z < -40) {
+          height += 1.5;
         }
         
-        const hillCenter2X = -60;
-        const hillCenter2Z = -60;
-        const dist2 = Math.sqrt(Math.pow(x - hillCenter2X, 2) + Math.pow(z - hillCenter2Z, 2));
-        if (dist2 < 25) {
-          height += (1 - dist2 / 25) * 6;
+        if (z > 40) {
+          height += 2;
+        }
+        
+        if (x < -40 || x > 40) {
+          height += 1;
         }
       }
       
@@ -128,9 +125,9 @@ export function RiverValley() {
       const x = positionAttribute.getX(i);
       const y = positionAttribute.getY(i);
       
-      const wave1 = Math.sin(x * 0.5 + time * 2) * 0.2;
-      const wave2 = Math.sin(y * 0.3 + time * 1.5) * 0.15;
-      const wave3 = Math.cos(x * 0.3 + y * 0.3 + time) * 0.1;
+      const wave1 = Math.sin(x * 0.4 + time * 1.5) * 0.15;
+      const wave2 = Math.sin(y * 0.25 + time * 1.2) * 0.12;
+      const wave3 = Math.cos(x * 0.2 + y * 0.2 + time * 0.8) * 0.08;
       
       positionAttribute.setZ(i, wave1 + wave2 + wave3);
     }
@@ -140,15 +137,15 @@ export function RiverValley() {
   });
   
   return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
-      <planeGeometry args={[40, 200, 60, 60]} />
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
+      <planeGeometry args={[35, 200, 50, 80]} />
       <meshStandardMaterial 
         ref={materialRef}
-        color="#1e40af" 
+        color="#2563eb" 
         transparent 
-        opacity={0.8}
-        roughness={0.1}
-        metalness={0.7}
+        opacity={0.75}
+        roughness={0.15}
+        metalness={0.6}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -160,18 +157,30 @@ export function ProceduralVegetation() {
     const treePositions: Array<[number, number, number, number]> = [];
     const heightData = generateHeightMap(100, 100, 0);
     
-    for (let i = 0; i < 80; i++) {
+    for (let i = -50; i < 50; i += 6) {
+      if (Math.abs(i) < 2) continue;
+      treePositions.push([12, 2.8, i, 0.9]);
+      treePositions.push([-12, 2.8, i, 0.9]);
+    }
+    
+    for (let i = -25; i < 25; i += 6) {
+      if (Math.abs(i) < 2) continue;
+      treePositions.push([i, 3, 8, 0.85]);
+      treePositions.push([i, 3, -8, 0.85]);
+    }
+    
+    for (let i = 0; i < 60; i++) {
       const x = (Math.random() - 0.5) * 180;
       const z = (Math.random() - 0.5) * 180;
       
-      if (Math.abs(x) < 25) continue;
+      if (Math.abs(x) < 20 || (Math.abs(z) < 12 && Math.abs(x) < 30)) continue;
       
       const gridX = Math.floor((x + 100) / 2);
       const gridZ = Math.floor((z + 100) / 2);
       const index = gridZ * 100 + gridX;
       const height = heightData[index] || 2;
       
-      const scale = 0.7 + Math.random() * 0.6;
+      const scale = 0.7 + Math.random() * 0.5;
       
       treePositions.push([x, height, z, scale]);
     }
@@ -181,7 +190,7 @@ export function ProceduralVegetation() {
   
   return (
     <>
-      <Instances limit={80} castShadow>
+      <Instances limit={150} castShadow>
         <cylinderGeometry args={[0.3, 0.4, 4, 6]} />
         <meshStandardMaterial color="#78350f" />
         {trees.map((pos, i) => (
@@ -189,7 +198,7 @@ export function ProceduralVegetation() {
         ))}
       </Instances>
       
-      <Instances limit={80} castShadow>
+      <Instances limit={150} castShadow>
         <coneGeometry args={[2, 4, 6]} />
         <meshStandardMaterial color="#15803d" />
         {trees.map((pos, i) => (
@@ -197,7 +206,7 @@ export function ProceduralVegetation() {
         ))}
       </Instances>
       
-      <Instances limit={80} castShadow>
+      <Instances limit={150} castShadow>
         <coneGeometry args={[1.5, 3, 6]} />
         <meshStandardMaterial color="#166534" />
         {trees.map((pos, i) => (

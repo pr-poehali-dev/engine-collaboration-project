@@ -75,23 +75,38 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
       
       <CarsOnBridge />
       
-      <Church position={[25, 4, -40]} />
+      <Church position={[30, 4, -55]} />
       
       <Building 
-        position={[-30, 5, -50]} 
-        size={[8, 15, 8]} 
+        position={[20, 5, -70]} 
+        size={[12, 18, 15]} 
         color="#e5e7eb"
         textureUrl="https://cdn.poehali.dev/files/f13c35c5-5656-433c-9c5e-0c50f6dd4b72.jpeg"
       />
-      <Building position={[-45, 4, -45]} size={[6, 12, 6]} color="#f3f4f6" />
       <Building 
-        position={[40, 6, 50]} 
-        size={[10, 20, 10]} 
+        position={[-25, 4, -65]} 
+        size={[15, 16, 12]} 
+        color="#f9fafb"
+        textureUrl="https://cdn.poehali.dev/files/b4af7ac0-96e9-4ae1-9fc2-0e3f8b4f10f8.jpeg"
+      />
+      <Building position={[45, 5, -50]} size={[10, 20, 10]} color="#e5e7eb" />
+      <Building position={[-40, 4, -45]} size={[8, 14, 8]} color="#f3f4f6" />
+      
+      <Building 
+        position={[35, 5, 60]} 
+        size={[14, 22, 18]} 
         color="#d1d5db"
         textureUrl="https://cdn.poehali.dev/files/b4af7ac0-96e9-4ae1-9fc2-0e3f8b4f10f8.jpeg"
       />
-      <Building position={[50, 5, 35]} size={[7, 18, 7]} color="#e5e7eb" />
-      <Building position={[-50, 5, 40]} size={[9, 16, 9]} color="#f3f4f6" />
+      <Building position={[55, 5, 50]} size={[10, 18, 10]} color="#e5e7eb" />
+      <Building position={[20, 4, 70]} size={[8, 15, 8]} color="#f3f4f6" />
+      <Building position={[-30, 5, 65]} size={[12, 20, 12]} color="#e5e7eb" />
+      <Building position={[-50, 4, 55]} size={[9, 16, 9]} color="#f9fafb" />
+      
+      <Building position={[-50, 4, -15]} size={[10, 14, 10]} color="#e5e7eb" />
+      <Building position={[-60, 5, 5]} size={[8, 18, 8]} color="#f3f4f6" />
+      <Building position={[50, 4, -10]} size={[12, 16, 12]} color="#e5e7eb" />
+      <Building position={[65, 5, 10]} size={[9, 20, 9]} color="#d1d5db" />
       
       <ProceduralVegetation />
       <Rocks />
