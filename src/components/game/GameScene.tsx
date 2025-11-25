@@ -33,6 +33,7 @@ function TexturePreloader() {
 
 export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMove: (pos: [number, number, number]) => void }) {
   const frameSkip = useMemo(() => ({ count: 0 }), []);
+  const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || 'ontouchstart' in window);
   
   useFrame(() => {
     frameSkip.count++;
@@ -40,33 +41,28 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
   return (
     <>
       <TexturePreloader />
-      <Sky 
-        distance={450000}
-        sunPosition={[100, 20, 100]}
-        inclination={0.6}
-        azimuth={0.25}
-      />
+      <color attach="background" args={['#87ceeb']} />
       
-      <ambientLight intensity={0.8} />
+      <ambientLight intensity={1} />
       <directionalLight 
         position={[50, 50, 50]} 
-        intensity={1} 
-        castShadow
-        shadow-mapSize-width={512}
-        shadow-mapSize-height={512}
-        shadow-camera-far={120}
-        shadow-camera-left={-60}
-        shadow-camera-right={60}
-        shadow-camera-top={60}
-        shadow-camera-bottom={-60}
+        intensity={0.8} 
+        castShadow={!isMobile}
+        shadow-mapSize-width={256}
+        shadow-mapSize-height={256}
+        shadow-camera-far={80}
+        shadow-camera-left={-40}
+        shadow-camera-right={40}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
       />
       
-      <fog attach="fog" args={['#87ceeb', 50, 250]} />
+      <fog attach="fog" args={['#87ceeb', 30, 150]} />
       
       <ProceduralTerrain />
       <RiverValley />
-      <Clouds />
-      <Birds />
+      {!isMobile && <Clouds />}
+      {!isMobile && <Birds />}
       
       <RoadNetwork />
       
@@ -128,7 +124,6 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
           TWO: THREE.TOUCH.DOLLY_PAN
         }}
       />
-      <Environment preset="sunset" />
     </>
   );
 }
