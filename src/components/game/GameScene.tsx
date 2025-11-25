@@ -47,18 +47,18 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
         azimuth={0.25}
       />
       
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.8} />
       <directionalLight 
         position={[50, 50, 50]} 
-        intensity={1.2} 
+        intensity={1} 
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-camera-far={150}
-        shadow-camera-left={-80}
-        shadow-camera-right={80}
-        shadow-camera-top={80}
-        shadow-camera-bottom={-80}
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
+        shadow-camera-far={120}
+        shadow-camera-left={-60}
+        shadow-camera-right={60}
+        shadow-camera-top={60}
+        shadow-camera-bottom={-60}
       />
       
       <fog attach="fog" args={['#87ceeb', 50, 250]} />
@@ -110,7 +110,7 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
       
       <ProceduralVegetation />
       <Rocks />
-      <StreetLamps />
+
       
       <Player position={[0, 8, 50]} joystick={joystick} onPositionChange={onPlayerMove} />
       

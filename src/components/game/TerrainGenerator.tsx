@@ -113,9 +113,13 @@ export function ProceduralTerrain() {
 export function RiverValley() {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  const frameSkipRef = useRef(0);
   
   useFrame((state) => {
     if (!meshRef.current || !materialRef.current) return;
+    
+    frameSkipRef.current++;
+    if (frameSkipRef.current % 4 !== 0) return;
     
     const time = state.clock.getElapsedTime();
     const geometry = meshRef.current.geometry as THREE.PlaneGeometry;
@@ -157,19 +161,19 @@ export function ProceduralVegetation() {
     const treePositions: Array<[number, number, number, number]> = [];
     const heightData = generateHeightMap(100, 100, 0);
     
-    for (let i = -50; i < 50; i += 6) {
+    for (let i = -50; i < 50; i += 8) {
       if (Math.abs(i) < 2) continue;
       treePositions.push([12, 2.8, i, 0.9]);
       treePositions.push([-12, 2.8, i, 0.9]);
     }
     
-    for (let i = -25; i < 25; i += 6) {
+    for (let i = -25; i < 25; i += 8) {
       if (Math.abs(i) < 2) continue;
       treePositions.push([i, 3, 8, 0.85]);
       treePositions.push([i, 3, -8, 0.85]);
     }
     
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 40; i++) {
       const x = (Math.random() - 0.5) * 180;
       const z = (Math.random() - 0.5) * 180;
       
@@ -190,7 +194,7 @@ export function ProceduralVegetation() {
   
   return (
     <>
-      <Instances limit={150} castShadow>
+      <Instances limit={100}>
         <cylinderGeometry args={[0.3, 0.4, 4, 6]} />
         <meshStandardMaterial color="#78350f" />
         {trees.map((pos, i) => (
@@ -198,7 +202,7 @@ export function ProceduralVegetation() {
         ))}
       </Instances>
       
-      <Instances limit={150} castShadow>
+      <Instances limit={100}>
         <coneGeometry args={[2, 4, 6]} />
         <meshStandardMaterial color="#15803d" />
         {trees.map((pos, i) => (
@@ -206,7 +210,7 @@ export function ProceduralVegetation() {
         ))}
       </Instances>
       
-      <Instances limit={150} castShadow>
+      <Instances limit={100}>
         <coneGeometry args={[1.5, 3, 6]} />
         <meshStandardMaterial color="#166534" />
         {trees.map((pos, i) => (

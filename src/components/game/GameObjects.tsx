@@ -41,7 +41,7 @@ export function Player({ position, joystick, onPositionChange }: {
     if (!playerRef.current) return;
     
     frameSkipRef.current++;
-    if (frameSkipRef.current % 2 !== 0) return;
+    if (frameSkipRef.current % 3 !== 0) return;
     
     let newVelX = 0;
     let newVelZ = 0;
@@ -147,6 +147,11 @@ export function Clouds() {
   ];
   
   const cloudFrameSkip = useRef(0);
+  const texturesPreloaded = useRef(false);
+  
+  if (!texturesPreloaded.current) {
+    texturesPreloaded.current = true;
+  }
   
   useFrame((state) => {
     if (!cloudsRef.current) return;
@@ -204,7 +209,7 @@ export function Birds() {
     if (!birdsRef.current) return;
     
     birdFrameSkip.current++;
-    if (birdFrameSkip.current % 2 !== 0) return;
+    if (birdFrameSkip.current % 4 !== 0) return;
     
     const time = state.clock.getElapsedTime();
     
@@ -295,7 +300,7 @@ export function CarsOnBridge() {
   
   useFrame(() => {
     carFrameSkip.current++;
-    if (carFrameSkip.current % 2 !== 0) return;
+    if (carFrameSkip.current % 3 !== 0) return;
     
     if (mainRoadLane1.current) {
       mainRoadLane1.current.children.forEach((car) => {
@@ -735,8 +740,10 @@ export function Church({ position }: { position: [number, number, number] }) {
 
 export function RoadNetwork() {
   const roadTexture = useTexture('https://cdn.poehali.dev/files/5e3ce736-91c3-4bc0-a772-218476e56221.jpeg');
-  roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
-  roadTexture.repeat.set(4, 30);
+  if (roadTexture) {
+    roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
+    roadTexture.repeat.set(4, 30);
+  }
 
   return (
     <group>
