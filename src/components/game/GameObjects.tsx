@@ -603,6 +603,78 @@ export function Church({ position }: { position: [number, number, number] }) {
           </mesh>
         );
       })}
+      
+      {[
+        [-8, 0, 10],
+        [8, 0, 10],
+        [-8, 0, -8],
+        [8, 0, -8]
+      ].map((pos, i) => (
+        <group key={`bench-${i}`} position={pos as [number, number, number]}>
+          <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
+            <boxGeometry args={[2.5, 0.1, 0.8]} />
+            <meshStandardMaterial color="#8b4513" />
+          </mesh>
+          
+          <mesh position={[0, 0.8, 0]} castShadow receiveShadow>
+            <boxGeometry args={[2.5, 0.1, 0.8]} />
+            <meshStandardMaterial color="#8b4513" />
+          </mesh>
+          
+          <mesh position={[0, 0.65, -0.35]} castShadow>
+            <boxGeometry args={[2.5, 0.5, 0.1]} />
+            <meshStandardMaterial color="#8b4513" />
+          </mesh>
+          
+          {[-1, 1].map((x, j) => (
+            <mesh key={`leg-${j}`} position={[x, 0.25, 0]} castShadow>
+              <boxGeometry args={[0.1, 0.5, 0.1]} />
+              <meshStandardMaterial color="#4b5563" />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      
+      {[
+        [-6, 0, 0],
+        [6, 0, 0],
+        [0, 0, 12],
+        [0, 0, -12]
+      ].map((pos, i) => (
+        <group key={`flowerbed-${i}`} position={pos as [number, number, number]}>
+          <mesh position={[0, 0.2, 0]} receiveShadow>
+            <cylinderGeometry args={[1.2, 1.2, 0.4, 16]} />
+            <meshStandardMaterial color="#6b4423" />
+          </mesh>
+          
+          <mesh position={[0, 0.45, 0]}>
+            <cylinderGeometry args={[1.1, 1.1, 0.1, 16]} />
+            <meshStandardMaterial color="#228b22" />
+          </mesh>
+          
+          {Array.from({ length: 8 }).map((_, j) => {
+            const angle = (j / 8) * Math.PI * 2;
+            const radius = 0.5;
+            const flowerX = Math.cos(angle) * radius;
+            const flowerZ = Math.sin(angle) * radius;
+            const colors = ['#ff1493', '#ff69b4', '#ffd700', '#ff4500', '#9370db'];
+            
+            return (
+              <group key={`flower-${j}`} position={[flowerX, 0.5, flowerZ]}>
+                <mesh position={[0, 0.3, 0]}>
+                  <cylinderGeometry args={[0.02, 0.02, 0.6, 8]} />
+                  <meshStandardMaterial color="#228b22" />
+                </mesh>
+                
+                <mesh position={[0, 0.65, 0]}>
+                  <sphereGeometry args={[0.1, 8, 8]} />
+                  <meshStandardMaterial color={colors[j % colors.length]} />
+                </mesh>
+              </group>
+            );
+          })}
+        </group>
+      ))}
     </group>
   );
 }
