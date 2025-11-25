@@ -437,6 +437,32 @@ export function Building({ position, size, color, textureUrl }: {
           <meshStandardMaterial color="#87ceeb" transparent opacity={0.7} />
         </mesh>
       ))}
+      
+      <mesh position={[size[0] / 2 + 0.6, size[1] * 0.7, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.2, 0.1, size[2] * 0.4]} />
+        <meshStandardMaterial color="#4b5563" />
+      </mesh>
+      
+      {[size[2] * 0.2, -size[2] * 0.2].map((z, i) => (
+        <mesh key={`balcony-rail-${i}`} position={[size[0] / 2 + 0.6, size[1] * 0.7 + 0.5, z]} castShadow>
+          <boxGeometry args={[0.1, 1, 0.1]} />
+          <meshStandardMaterial color="#4b5563" />
+        </mesh>
+      ))}
+      <mesh position={[size[0] / 2 + 0.6, size[1] * 0.7 + 1, 0]} castShadow>
+        <boxGeometry args={[0.12, 0.12, size[2] * 0.4]} />
+        <meshStandardMaterial color="#4b5563" />
+      </mesh>
+      
+      {Array.from({ length: 5 }).map((_, i) => {
+        const stepHeight = 0.3 * i;
+        return (
+          <mesh key={`step-${i}`} position={[0, stepHeight, size[2] / 2 + 0.8 + i * 0.25]} castShadow receiveShadow>
+            <boxGeometry args={[1.5, 0.15, 0.3]} />
+            <meshStandardMaterial color="#6b7280" />
+          </mesh>
+        );
+      })}
     </group>
   );
 }
