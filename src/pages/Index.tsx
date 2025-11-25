@@ -1,6 +1,6 @@
 import { Suspense, useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sky, Environment } from '@react-three/drei';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { OrbitControls, Sky, Environment, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface JoystickState {
@@ -8,7 +8,11 @@ interface JoystickState {
   z: number;
 }
 
-function Player({ position, joystick }: { position: [number, number, number], joystick: JoystickState }) {
+function Player({ position, joystick, onPositionChange }: { 
+  position: [number, number, number], 
+  joystick: JoystickState,
+  onPositionChange: (pos: [number, number, number]) => void 
+}) {
   const playerRef = useRef<THREE.Mesh>(null);
   const keysRef = useRef<Record<string, boolean>>({});
   const speed = 0.1;
@@ -47,6 +51,12 @@ function Player({ position, joystick }: { position: [number, number, number], jo
     
     playerRef.current.position.x += newVelX;
     playerRef.current.position.z += newVelZ;
+    
+    onPositionChange([
+      playerRef.current.position.x,
+      playerRef.current.position.y,
+      playerRef.current.position.z
+    ]);
   });
   
   return (
@@ -69,27 +79,233 @@ function Ground() {
   );
 }
 
-function River() {
+function AnimatedRiver() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  
+  useFrame((state) => {
+    if (!meshRef.current || !materialRef.current) return;
+    
+    const time = state.clock.getElapsedTime();
+    const geometry = meshRef.current.geometry as THREE.PlaneGeometry;
+    const positionAttribute = geometry.getAttribute('position');
+    
+    for (let i = 0; i < positionAttribute.count; i++) {
+      const x = positionAttribute.getX(i);
+      const y = positionAttribute.getY(i);
+      
+      const wave1 = Math.sin(x * 0.5 + time * 2) * 0.15;
+      const wave2 = Math.sin(y * 0.3 + time * 1.5) * 0.1;
+      const wave3 = Math.cos(x * 0.3 + y * 0.3 + time) * 0.08;
+      
+      positionAttribute.setZ(i, wave1 + wave2 + wave3);
+    }
+    
+    positionAttribute.needsUpdate = true;
+    geometry.computeVertexNormals();
+  });
+  
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]} receiveShadow>
-      <planeGeometry args={[40, 200]} />
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]} receiveShadow>
+      <planeGeometry args={[40, 200, 100, 100]} />
       <meshStandardMaterial 
-        color="#3b82f6" 
+        ref={materialRef}
+        color="#2563eb" 
         transparent 
-        opacity={0.6}
-        roughness={0.1}
-        metalness={0.8}
+        opacity={0.7}
+        roughness={0.05}
+        metalness={0.9}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
 }
 
+function Clouds() {
+  const cloudsRef = useRef<THREE.Group>(null);
+  const cloudPositions: [number, number, number][] = [
+    [30, 40, -50],
+    [-40, 45, -30],
+    [50, 42, 20],
+    [-30, 38, 50],
+    [20, 44, -70]
+  ];
+  
+  useFrame((state) => {
+    if (!cloudsRef.current) return;
+    
+    cloudsRef.current.children.forEach((cloud, i) => {
+      cloud.position.x += 0.02;
+      
+      if (cloud.position.x > 100) {
+        cloud.position.x = -100;
+      }
+    });
+  });
+  
+  return (
+    <group ref={cloudsRef}>
+      {cloudPositions.map((pos, i) => (
+        <group key={i} position={pos}>
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[4, 16, 16]} />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
+          </mesh>
+          <mesh position={[3, 0, 1]}>
+            <sphereGeometry args={[3, 16, 16]} />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
+          </mesh>
+          <mesh position={[-3, 0, 0]}>
+            <sphereGeometry args={[3.5, 16, 16]} />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function Birds() {
+  const birdsRef = useRef<THREE.Group>(null);
+  const birdData = useRef<Array<{ angle: number, radius: number, speed: number, height: number }>>([]);
+  
+  useEffect(() => {
+    birdData.current = Array.from({ length: 8 }, () => ({
+      angle: Math.random() * Math.PI * 2,
+      radius: 20 + Math.random() * 30,
+      speed: 0.3 + Math.random() * 0.4,
+      height: 15 + Math.random() * 10
+    }));
+  }, []);
+  
+  useFrame((state) => {
+    if (!birdsRef.current) return;
+    
+    const time = state.clock.getElapsedTime();
+    
+    birdsRef.current.children.forEach((bird, i) => {
+      const data = birdData.current[i];
+      if (!data) return;
+      
+      data.angle += 0.01 * data.speed;
+      
+      bird.position.x = Math.cos(data.angle) * data.radius;
+      bird.position.z = Math.sin(data.angle) * data.radius;
+      bird.position.y = data.height + Math.sin(time * 2 + i) * 0.5;
+      
+      bird.rotation.y = data.angle + Math.PI / 2;
+    });
+  });
+  
+  return (
+    <group ref={birdsRef}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <group key={i}>
+          <mesh>
+            <boxGeometry args={[0.3, 0.2, 0.8]} />
+            <meshStandardMaterial color="#1f2937" />
+          </mesh>
+          <mesh position={[-0.4, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
+            <boxGeometry args={[0.8, 0.05, 0.4]} />
+            <meshStandardMaterial color="#1f2937" />
+          </mesh>
+          <mesh position={[0.4, 0, 0]} rotation={[0, 0, -Math.PI / 6]}>
+            <boxGeometry args={[0.8, 0.05, 0.4]} />
+            <meshStandardMaterial color="#1f2937" />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function Car({ position, rotation, color }: { 
+  position: [number, number, number], 
+  rotation: [number, number, number],
+  color: string 
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <boxGeometry args={[1.8, 0.8, 4]} />
+        <meshStandardMaterial color={color} metalness={0.8} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 1.2, 0.5]} castShadow>
+        <boxGeometry args={[1.6, 0.8, 1.8]} />
+        <meshStandardMaterial color={color} metalness={0.8} roughness={0.2} />
+      </mesh>
+      
+      <mesh position={[0, 1.2, 1.8]} castShadow>
+        <boxGeometry args={[1.5, 0.7, 0.1]} />
+        <meshStandardMaterial color="#60a5fa" transparent opacity={0.6} />
+      </mesh>
+      <mesh position={[0, 1.2, -0.7]} castShadow>
+        <boxGeometry args={[1.5, 0.7, 0.1]} />
+        <meshStandardMaterial color="#60a5fa" transparent opacity={0.6} />
+      </mesh>
+      
+      {[
+        [-0.8, 0.3, 1.3],
+        [0.8, 0.3, 1.3],
+        [-0.8, 0.3, -1.3],
+        [0.8, 0.3, -1.3]
+      ].map((pos, i) => (
+        <mesh key={i} position={pos as [number, number, number]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.35, 0.35, 0.3, 16]} />
+          <meshStandardMaterial color="#1f2937" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function CarsOnBridge() {
+  const carsRef = useRef<THREE.Group>(null);
+  
+  const cars = [
+    { id: 1, startZ: -60, color: '#ef4444', speed: 0.15 },
+    { id: 2, startZ: -75, color: '#3b82f6', speed: 0.12 },
+    { id: 3, startZ: 60, color: '#22c55e', speed: -0.13, reverse: true },
+    { id: 4, startZ: 80, color: '#fbbf24', speed: -0.14, reverse: true }
+  ];
+  
+  useFrame(() => {
+    if (!carsRef.current) return;
+    
+    carsRef.current.children.forEach((car, i) => {
+      const carData = cars[i];
+      car.position.z += carData.speed;
+      
+      if (carData.speed > 0 && car.position.z > 80) {
+        car.position.z = -80;
+      } else if (carData.speed < 0 && car.position.z < -80) {
+        car.position.z = 80;
+      }
+    });
+  });
+  
+  return (
+    <group ref={carsRef}>
+      {cars.map((car, i) => (
+        <Car 
+          key={car.id}
+          position={[-3, 2.8, car.startZ]} 
+          rotation={car.reverse ? [0, Math.PI, 0] : [0, 0, 0]}
+          color={car.color}
+        />
+      ))}
+    </group>
+  );
+}
+
 function Bridge({ position, rotation }: { position: [number, number, number], rotation: [number, number, number] }) {
+  const texture = useTexture('https://cdn.poehali.dev/files/90e41c17-bdf1-4a41-bf83-d6040451069a.jpeg');
+  
   return (
     <group position={position} rotation={rotation}>
       <mesh position={[0, 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[50, 0.5, 8]} />
-        <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.4} />
+        <meshStandardMaterial map={texture} metalness={0.3} roughness={0.7} />
       </mesh>
       
       {[-20, -10, 0, 10, 20].map((x, i) => (
@@ -124,16 +340,29 @@ function Bridge({ position, rotation }: { position: [number, number, number], ro
   );
 }
 
-function Building({ position, size, color }: { 
+function Building({ position, size, color, textureUrl }: { 
   position: [number, number, number], 
   size: [number, number, number],
-  color: string 
+  color: string,
+  textureUrl?: string
 }) {
+  let texture;
+  try {
+    texture = textureUrl ? useTexture(textureUrl) : null;
+  } catch {
+    texture = null;
+  }
+  
   return (
     <group position={position}>
       <mesh position={[0, size[1] / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={size} />
-        <meshStandardMaterial color={color} roughness={0.7} metalness={0.3} />
+        <meshStandardMaterial 
+          map={texture || undefined}
+          color={texture ? '#ffffff' : color} 
+          roughness={0.7} 
+          metalness={0.3} 
+        />
       </mesh>
       
       <mesh position={[0, size[1] + 1, 0]} castShadow>
@@ -145,11 +374,13 @@ function Building({ position, size, color }: {
 }
 
 function Church({ position }: { position: [number, number, number] }) {
+  const texture = useTexture('https://cdn.poehali.dev/files/acf66156-02ef-416b-a665-ba155b86b286.jpeg');
+  
   return (
     <group position={position}>
       <mesh position={[0, 5, 0]} castShadow receiveShadow>
         <boxGeometry args={[8, 10, 8]} />
-        <meshStandardMaterial color="#f3f4f6" />
+        <meshStandardMaterial map={texture} />
       </mesh>
       
       <mesh position={[0, 12, 0]} castShadow>
@@ -200,7 +431,24 @@ function Trees() {
   );
 }
 
-function Scene({ joystick }: { joystick: JoystickState }) {
+function AmbientSound() {
+  useEffect(() => {
+    const audio = new Audio();
+    audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==';
+    audio.loop = true;
+    audio.volume = 0.3;
+    audio.play().catch(() => {});
+    
+    return () => {
+      audio.pause();
+      audio.src = '';
+    };
+  }, []);
+  
+  return null;
+}
+
+function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMove: (pos: [number, number, number]) => void }) {
   return (
     <>
       <Sky 
@@ -227,22 +475,38 @@ function Scene({ joystick }: { joystick: JoystickState }) {
       <fog attach="fog" args={['#87ceeb', 50, 200]} />
       
       <Ground />
-      <River />
+      <AnimatedRiver />
+      <Clouds />
+      <Birds />
       
       <Bridge position={[0, 0, -30]} rotation={[0, 0, 0]} />
       <Bridge position={[0, 0, 30]} rotation={[0, Math.PI / 6, 0]} />
       
+      <CarsOnBridge />
+      
       <Church position={[25, 0, -40]} />
       
-      <Building position={[-30, 0, -50]} size={[8, 15, 8]} color="#e5e7eb" />
+      <Building 
+        position={[-30, 0, -50]} 
+        size={[8, 15, 8]} 
+        color="#e5e7eb"
+        textureUrl="https://cdn.poehali.dev/files/f13c35c5-5656-433c-9c5e-0c50f6dd4b72.jpeg"
+      />
       <Building position={[-45, 0, -45]} size={[6, 12, 6]} color="#f3f4f6" />
-      <Building position={[40, 0, 50]} size={[10, 20, 10]} color="#d1d5db" />
+      <Building 
+        position={[40, 0, 50]} 
+        size={[10, 20, 10]} 
+        color="#d1d5db"
+        textureUrl="https://cdn.poehali.dev/files/b4af7ac0-96e9-4ae1-9fc2-0e3f8b4f10f8.jpeg"
+      />
       <Building position={[50, 0, 35]} size={[7, 18, 7]} color="#e5e7eb" />
       <Building position={[-50, 0, 40]} size={[9, 16, 9]} color="#f3f4f6" />
       
       <Trees />
       
-      <Player position={[0, 1.5, 50]} joystick={joystick} />
+      <Player position={[0, 1.5, 50]} joystick={joystick} onPositionChange={onPlayerMove} />
+      
+      <AmbientSound />
     </>
   );
 }
@@ -310,9 +574,72 @@ function VirtualJoystick({ onMove }: { onMove: (x: number, z: number) => void })
   );
 }
 
+function MiniMap({ playerPos }: { playerPos: [number, number, number] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.clearRect(0, 0, 150, 150);
+    
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(0, 0, 150, 150);
+    
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(55, 0, 40, 150);
+    
+    ctx.strokeStyle = '#9ca3af';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, 45);
+    ctx.lineTo(150, 45);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(0, 105);
+    ctx.lineTo(150, 105);
+    ctx.stroke();
+    
+    ctx.fillStyle = '#3b82f6';
+    ctx.beginPath();
+    ctx.arc(90, 45, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    const mapX = 75 + (playerPos[0] / 200) * 150;
+    const mapY = 75 + (playerPos[2] / 200) * 150;
+    
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(mapX, mapY, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+  }, [playerPos]);
+  
+  return (
+    <div className="absolute top-20 right-4 bg-black/70 p-2 rounded-lg backdrop-blur-sm">
+      <canvas 
+        ref={canvasRef}
+        width={150}
+        height={150}
+        className="border-2 border-white/30 rounded"
+      />
+      <p className="text-white text-xs mt-1 text-center">Карта</p>
+    </div>
+  );
+}
+
 export default function Index() {
   const [joystick, setJoystick] = useState<JoystickState>({ x: 0, z: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [playerPos, setPlayerPos] = useState<[number, number, number]>([0, 1.5, 50]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -337,7 +664,7 @@ export default function Index() {
         }}
       >
         <Suspense fallback={null}>
-          <Scene joystick={joystick} />
+          <Scene joystick={joystick} onPlayerMove={setPlayerPos} />
           <OrbitControls 
             enablePan={true}
             enableZoom={true}
@@ -361,6 +688,8 @@ export default function Index() {
         </p>
         <p className="text-sm">Камера: {isMobile ? 'Свайп' : 'Мышь + колесо'}</p>
       </div>
+
+      <MiniMap playerPos={playerPos} />
 
       {isMobile && (
         <VirtualJoystick 
