@@ -563,7 +563,80 @@ export function Church({ position }: { position: [number, number, number] }) {
         <boxGeometry args={[14, 0.5, 18]} />
         <meshStandardMaterial color="#d1d5db" />
       </mesh>
+      
+      {Array.from({ length: 12 }).map((_, i) => {
+        const angle = (i / 12) * Math.PI * 2;
+        const radius = 10;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        return (
+          <group key={`fence-${i}`} position={[x, 0, z]}>
+            <mesh position={[0, 1.5, 0]} castShadow>
+              <boxGeometry args={[0.15, 3, 0.15]} />
+              <meshStandardMaterial color="#1f2937" />
+            </mesh>
+            <mesh position={[0, 3.2, 0]} castShadow>
+              <sphereGeometry args={[0.2, 8, 8]} />
+              <meshStandardMaterial color="#fbbf24" metalness={0.8} roughness={0.2} />
+            </mesh>
+          </group>
+        );
+      })}
+      
+      {Array.from({ length: 12 }).map((_, i) => {
+        const angle1 = (i / 12) * Math.PI * 2;
+        const angle2 = ((i + 1) / 12) * Math.PI * 2;
+        const radius = 10;
+        const x1 = Math.cos(angle1) * radius;
+        const z1 = Math.sin(angle1) * radius;
+        const x2 = Math.cos(angle2) * radius;
+        const z2 = Math.sin(angle2) * radius;
+        const midX = (x1 + x2) / 2;
+        const midZ = (z1 + z2) / 2;
+        const length = Math.sqrt((x2 - x1) ** 2 + (z2 - z1) ** 2);
+        const rotation = Math.atan2(z2 - z1, x2 - x1);
+        
+        return (
+          <mesh key={`fence-bar-${i}`} position={[midX, 1.5, midZ]} rotation={[0, rotation, 0]} castShadow>
+            <boxGeometry args={[length, 0.1, 0.1]} />
+            <meshStandardMaterial color="#1f2937" />
+          </mesh>
+        );
+      })}
     </group>
+  );
+}
+
+export function StreetLamps() {
+  const lampPositions: [number, number, number][] = [
+    [15, 0, 20], [-15, 0, 20], [15, 0, 40], [-15, 0, 40],
+    [15, 0, -20], [-15, 0, -20], [15, 0, -40], [-15, 0, -40],
+    [30, 0, 10], [-30, 0, 10], [30, 0, -10], [-30, 0, -10]
+  ];
+  
+  return (
+    <>
+      {lampPositions.map((pos, i) => (
+        <group key={`lamp-${i}`} position={pos}>
+          <mesh position={[0, 3, 0]} castShadow>
+            <cylinderGeometry args={[0.15, 0.15, 6, 8]} />
+            <meshStandardMaterial color="#2d3748" />
+          </mesh>
+          
+          <mesh position={[0, 6.5, 0]} castShadow>
+            <boxGeometry args={[0.8, 0.8, 0.8]} />
+            <meshStandardMaterial color="#1a202c" />
+          </mesh>
+          
+          <pointLight position={[0, 6.5, 0]} intensity={50} distance={20} color="#ffd700" castShadow />
+          
+          <mesh position={[0, 6.5, 0]}>
+            <sphereGeometry args={[0.3, 16, 16]} />
+            <meshStandardMaterial color="#fff4d6" emissive="#ffd700" emissiveIntensity={1} />
+          </mesh>
+        </group>
+      ))}
+    </>
   );
 }
 

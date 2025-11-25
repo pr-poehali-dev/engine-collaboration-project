@@ -8,7 +8,8 @@ import {
   Church, 
   Building, 
   Player,
-  AmbientSound
+  AmbientSound,
+  StreetLamps
 } from './GameObjects';
 import { 
   ProceduralTerrain, 
@@ -74,6 +75,7 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
       
       <ProceduralVegetation />
       <Rocks />
+      <StreetLamps />
       
       <Player position={[0, 8, 50]} joystick={joystick} onPositionChange={onPlayerMove} />
       
