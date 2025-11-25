@@ -433,24 +433,70 @@ export function Church({ position }: { position: [number, number, number] }) {
   
   return (
     <group position={position}>
-      <mesh position={[0, 5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[8, 10, 8]} />
-        <meshStandardMaterial map={texture || undefined} color={texture ? '#ffffff' : '#f3f4f6'} />
+      <mesh position={[0, 4, 0]} castShadow receiveShadow>
+        <boxGeometry args={[12, 8, 16]} />
+        <meshStandardMaterial map={texture || undefined} color={texture ? '#ffffff' : '#f9fafb'} />
+      </mesh>
+      
+      <mesh position={[-5, 5, 6]} castShadow receiveShadow>
+        <boxGeometry args={[2, 10, 4]} />
+        <meshStandardMaterial map={texture || undefined} color={texture ? '#ffffff' : '#f9fafb'} />
+      </mesh>
+      
+      <mesh position={[-5, 11, 6]} castShadow>
+        <coneGeometry args={[1.5, 3, 8]} />
+        <meshStandardMaterial color="#60a5fa" metalness={0.6} roughness={0.3} />
+      </mesh>
+      
+      <mesh position={[0, 9, 0]} castShadow>
+        <boxGeometry args={[4, 3, 4]} />
+        <meshStandardMaterial color="#e5e7eb" />
       </mesh>
       
       <mesh position={[0, 12, 0]} castShadow>
-        <coneGeometry args={[5, 4, 8]} />
-        <meshStandardMaterial color="#3b82f6" metalness={0.8} roughness={0.2} />
+        <cylinderGeometry args={[2, 2.5, 4, 8]} />
+        <meshStandardMaterial color="#e5e7eb" />
       </mesh>
       
-      <mesh position={[0, 16, 0]} castShadow>
-        <boxGeometry args={[1, 6, 1]} />
+      <mesh position={[0, 15.5, 0]} castShadow>
+        <sphereGeometry args={[2.2, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#60a5fa" metalness={0.6} roughness={0.3} />
+      </mesh>
+      
+      <mesh position={[0, 17, 0]} castShadow>
+        <cylinderGeometry args={[0.3, 0.3, 3, 8]} />
         <meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.1} />
       </mesh>
       
-      <mesh position={[0, 19.5, 0]} castShadow>
-        <sphereGeometry args={[1.2, 16, 16]} />
+      <mesh position={[0, 19, 0]} castShadow>
+        <sphereGeometry args={[0.8, 16, 16]} />
         <meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.1} />
+      </mesh>
+      
+      <mesh position={[0, 20.2, 0]} castShadow>
+        <boxGeometry args={[1.2, 0.1, 0.1]} />
+        <meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.1} />
+      </mesh>
+      <mesh position={[0, 20.2, 0]} rotation={[0, Math.PI / 2, 0]} castShadow>
+        <boxGeometry args={[1.2, 0.1, 0.1]} />
+        <meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.1} />
+      </mesh>
+      
+      <mesh position={[0, 2, 7.5]} castShadow>
+        <boxGeometry args={[3, 4, 0.5]} />
+        <meshStandardMaterial color="#4b5563" />
+      </mesh>
+      
+      {[-4, -2, 2, 4].map((x, i) => (
+        <mesh key={i} position={[x, 5, 7.5]} castShadow>
+          <boxGeometry args={[1.2, 2.5, 0.3]} />
+          <meshStandardMaterial color="#93c5fd" transparent opacity={0.7} />
+        </mesh>
+      ))}
+      
+      <mesh position={[0, 0.3, 0]} receiveShadow>
+        <boxGeometry args={[14, 0.5, 18]} />
+        <meshStandardMaterial color="#d1d5db" />
       </mesh>
     </group>
   );
