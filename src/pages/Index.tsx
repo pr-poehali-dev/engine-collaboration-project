@@ -26,10 +26,12 @@ export default function Index() {
         shadows
         camera={{ position: [0, 15, 70], fov: 75 }}
         gl={{ 
-          antialias: true,
+          antialias: false,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2
+          toneMappingExposure: 1.2,
+          powerPreference: 'high-performance'
         }}
+        dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
           <Scene joystick={joystick} onPlayerMove={setPlayerPos} />

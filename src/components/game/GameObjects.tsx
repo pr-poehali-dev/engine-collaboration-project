@@ -35,8 +35,13 @@ export function Player({ position, joystick, onPositionChange }: {
     };
   }, []);
   
+  const frameSkipRef = useRef(0);
+  
   useFrame(() => {
     if (!playerRef.current) return;
+    
+    frameSkipRef.current++;
+    if (frameSkipRef.current % 2 !== 0) return;
     
     let newVelX = 0;
     let newVelZ = 0;
@@ -49,8 +54,8 @@ export function Player({ position, joystick, onPositionChange }: {
     newVelX += joystick.x * speed;
     newVelZ += joystick.z * speed;
     
-    playerRef.current.position.x += newVelX;
-    playerRef.current.position.z += newVelZ;
+    playerRef.current.position.x += newVelX * 2;
+    playerRef.current.position.z += newVelZ * 2;
     
     onPositionChange([
       playerRef.current.position.x,
@@ -141,11 +146,16 @@ export function Clouds() {
     [20, 44, -70]
   ];
   
+  const cloudFrameSkip = useRef(0);
+  
   useFrame((state) => {
     if (!cloudsRef.current) return;
     
+    cloudFrameSkip.current++;
+    if (cloudFrameSkip.current % 3 !== 0) return;
+    
     cloudsRef.current.children.forEach((cloud, i) => {
-      cloud.position.x += 0.02;
+      cloud.position.x += 0.06;
       
       if (cloud.position.x > 100) {
         cloud.position.x = -100;
@@ -188,8 +198,13 @@ export function Birds() {
     }));
   }, []);
   
+  const birdFrameSkip = useRef(0);
+  
   useFrame((state) => {
     if (!birdsRef.current) return;
+    
+    birdFrameSkip.current++;
+    if (birdFrameSkip.current % 2 !== 0) return;
     
     const time = state.clock.getElapsedTime();
     
@@ -197,7 +212,7 @@ export function Birds() {
       const data = birdData.current[i];
       if (!data) return;
       
-      data.angle += 0.01 * data.speed;
+      data.angle += 0.02 * data.speed;
       
       bird.position.x = Math.cos(data.angle) * data.radius;
       bird.position.z = Math.sin(data.angle) * data.radius;
@@ -274,11 +289,15 @@ export function CarsOnBridge() {
   const bridge1Lane2 = useRef<THREE.Group>(null);
   const bridge2Lane1 = useRef<THREE.Group>(null);
   const bridge2Lane2 = useRef<THREE.Group>(null);
+  const carFrameSkip = useRef(0);
   
   useFrame(() => {
+    carFrameSkip.current++;
+    if (carFrameSkip.current % 2 !== 0) return;
+    
     if (bridge1Lane1.current) {
       bridge1Lane1.current.children.forEach((car) => {
-        car.position.z += 0.15;
+        car.position.z += 0.3;
         if (car.position.z > -5) {
           car.position.z = -55;
           car.position.x = -2;
@@ -288,7 +307,7 @@ export function CarsOnBridge() {
     
     if (bridge1Lane2.current) {
       bridge1Lane2.current.children.forEach((car) => {
-        car.position.z -= 0.12;
+        car.position.z -= 0.24;
         if (car.position.z < -55) {
           car.position.z = -5;
           car.position.x = 2;
@@ -299,7 +318,7 @@ export function CarsOnBridge() {
     if (bridge2Lane1.current) {
       bridge2Lane1.current.children.forEach((car) => {
         const angle = Math.PI / 6;
-        const speed = 0.15;
+        const speed = 0.3;
         car.position.x += Math.sin(angle) * speed;
         car.position.z += Math.cos(angle) * speed;
         
@@ -313,7 +332,7 @@ export function CarsOnBridge() {
     if (bridge2Lane2.current) {
       bridge2Lane2.current.children.forEach((car) => {
         const angle = Math.PI / 6;
-        const speed = 0.13;
+        const speed = 0.26;
         car.position.x -= Math.sin(angle) * speed;
         car.position.z -= Math.cos(angle) * speed;
         
@@ -715,8 +734,8 @@ export function StreetLamps() {
         ))}
       </Instances>
       
-      {lampPositions.map((pos, i) => (
-        <pointLight key={`pl-${i}`} position={[pos[0], 6.5, pos[2]]} intensity={50} distance={20} color="#ffd700" />
+      {lampPositions.slice(0, 4).map((pos, i) => (
+        <pointLight key={`pl-${i}`} position={[pos[0], 6.5, pos[2]]} intensity={80} distance={25} color="#ffd700" />
       ))}
     </>
   );

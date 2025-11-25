@@ -1,4 +1,4 @@
-import { Sky, OrbitControls, Environment } from '@react-three/drei';
+import { Sky, OrbitControls, Environment, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { 
   Clouds, 
@@ -18,10 +18,27 @@ import {
   Rocks 
 } from './TerrainGenerator';
 import type { JoystickState } from './GameControls';
+import { useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
+
+function TexturePreloader() {
+  useTexture.preload('https://cdn.poehali.dev/files/5e3ce736-91c3-4bc0-a772-218476e56221.jpeg');
+  useTexture.preload('https://cdn.poehali.dev/projects/1dd9ac1a-e0e4-4079-ba92-59a736b6e43e/files/a8e864b1-3b4d-4e6e-bdd1-afc0a264ecea.jpg');
+  useTexture.preload('https://cdn.poehali.dev/projects/1dd9ac1a-e0e4-4079-ba92-59a736b6e43e/files/f45b2452-b0df-4f50-968d-b706a34933c0.jpg');
+  useTexture.preload('https://cdn.poehali.dev/files/f13c35c5-5656-433c-9c5e-0c50f6dd4b72.jpeg');
+  useTexture.preload('https://cdn.poehali.dev/files/b4af7ac0-96e9-4ae1-9fc2-0e3f8b4f10f8.jpeg');
+  return null;
+}
 
 export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMove: (pos: [number, number, number]) => void }) {
+  const frameSkip = useMemo(() => ({ count: 0 }), []);
+  
+  useFrame(() => {
+    frameSkip.count++;
+  });
   return (
     <>
+      <TexturePreloader />
       <Sky 
         distance={450000}
         sunPosition={[100, 20, 100]}
@@ -29,18 +46,18 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
         azimuth={0.25}
       />
       
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.6} />
       <directionalLight 
         position={[50, 50, 50]} 
-        intensity={1.5} 
+        intensity={1.2} 
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={200}
-        shadow-camera-left={-100}
-        shadow-camera-right={100}
-        shadow-camera-top={100}
-        shadow-camera-bottom={-100}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={150}
+        shadow-camera-left={-80}
+        shadow-camera-right={80}
+        shadow-camera-top={80}
+        shadow-camera-bottom={-80}
       />
       
       <fog attach="fog" args={['#87ceeb', 50, 250]} />
