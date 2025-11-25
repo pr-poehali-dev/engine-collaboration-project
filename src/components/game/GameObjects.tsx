@@ -286,10 +286,22 @@ export function CarsOnBridge() {
     
     if (group2Ref.current) {
       group2Ref.current.children.forEach((car, i) => {
-        car.position.z -= i === 0 ? 0.13 : 0.14;
+        const speed = i === 0 ? 0.13 : 0.14;
+        const angle = Math.PI / 6;
         
-        if (car.position.z < 5) {
-          car.position.z = 55;
+        car.position.x += Math.sin(angle) * speed * (i === 0 ? -1 : 1);
+        car.position.z += Math.cos(angle) * speed * (i === 0 ? -1 : 1);
+        
+        if (i === 0) {
+          if (car.position.z < 5) {
+            car.position.z = 55;
+            car.position.x = 3;
+          }
+        } else {
+          if (car.position.z > 55) {
+            car.position.z = 5;
+            car.position.x = 3;
+          }
         }
       });
     }
@@ -303,8 +315,8 @@ export function CarsOnBridge() {
       </group>
       
       <group ref={group2Ref}>
-        <Car position={[3, 4.8, 40]} rotation={[0, Math.PI, 0]} color="#22c55e" />
-        <Car position={[3, 4.8, 25]} rotation={[0, Math.PI, 0]} color="#fbbf24" />
+        <Car position={[3, 4.8, 40]} rotation={[0, Math.PI + Math.PI / 6, 0]} color="#22c55e" />
+        <Car position={[3, 4.8, 25]} rotation={[0, Math.PI / 6, 0]} color="#fbbf24" />
       </group>
     </>
   );
