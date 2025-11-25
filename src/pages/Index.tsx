@@ -69,13 +69,23 @@ function Player({ position, joystick, onPositionChange }: {
 
 function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <planeGeometry args={[200, 200, 50, 50]} />
-      <meshStandardMaterial 
-        color="#4ade80" 
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 2, 0]} receiveShadow>
+        <planeGeometry args={[200, 200, 50, 50]} />
+        <meshStandardMaterial 
+          color="#4ade80" 
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
+        <planeGeometry args={[40, 200]} />
+        <meshStandardMaterial 
+          color="#8b7355" 
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </>
   );
 }
 
@@ -106,7 +116,7 @@ function AnimatedRiver() {
   });
   
   return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]} receiveShadow>
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <planeGeometry args={[40, 200, 100, 100]} />
       <meshStandardMaterial 
         ref={materialRef}
@@ -263,10 +273,10 @@ function CarsOnBridge() {
   const carsRef = useRef<THREE.Group>(null);
   
   const cars = [
-    { id: 1, startZ: -60, color: '#ef4444', speed: 0.15 },
-    { id: 2, startZ: -75, color: '#3b82f6', speed: 0.12 },
-    { id: 3, startZ: 60, color: '#22c55e', speed: -0.13, reverse: true },
-    { id: 4, startZ: 80, color: '#fbbf24', speed: -0.14, reverse: true }
+    { id: 1, startZ: -40, color: '#ef4444', speed: 0.15, bridge: 1 },
+    { id: 2, startZ: -25, color: '#3b82f6', speed: 0.12, bridge: 1 },
+    { id: 3, startZ: 40, color: '#22c55e', speed: -0.13, reverse: true, bridge: 2 },
+    { id: 4, startZ: 25, color: '#fbbf24', speed: -0.14, reverse: true, bridge: 2 }
   ];
   
   useFrame(() => {
@@ -276,10 +286,18 @@ function CarsOnBridge() {
       const carData = cars[i];
       car.position.z += carData.speed;
       
-      if (carData.speed > 0 && car.position.z > 80) {
-        car.position.z = -80;
-      } else if (carData.speed < 0 && car.position.z < -80) {
-        car.position.z = 80;
+      if (carData.bridge === 1) {
+        if (carData.speed > 0 && car.position.z > -5) {
+          car.position.z = -55;
+        } else if (carData.speed < 0 && car.position.z < -55) {
+          car.position.z = -5;
+        }
+      } else {
+        if (carData.speed > 0 && car.position.z > 55) {
+          car.position.z = 5;
+        } else if (carData.speed < 0 && car.position.z < 5) {
+          car.position.z = 55;
+        }
       }
     });
   });
@@ -289,7 +307,7 @@ function CarsOnBridge() {
       {cars.map((car, i) => (
         <Car 
           key={car.id}
-          position={[-3, 2.8, car.startZ]} 
+          position={[-3, 4.8, car.startZ]} 
           rotation={car.reverse ? [0, Math.PI, 0] : [0, 0, 0]}
           color={car.color}
         />
@@ -301,27 +319,27 @@ function CarsOnBridge() {
 function Bridge({ position, rotation }: { position: [number, number, number], rotation: [number, number, number] }) {
   return (
     <group position={position} rotation={rotation}>
-      <mesh position={[0, 2, 0]} castShadow receiveShadow>
+      <mesh position={[0, 4, 0]} castShadow receiveShadow>
         <boxGeometry args={[50, 0.5, 8]} />
         <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.4} />
       </mesh>
       
       {[-20, -10, 0, 10, 20].map((x, i) => (
         <group key={i} position={[x, 0, 0]}>
-          <mesh position={[0, 1, -3]} castShadow>
-            <cylinderGeometry args={[0.5, 0.5, 4, 8]} />
+          <mesh position={[0, 0, -3]} castShadow>
+            <cylinderGeometry args={[0.5, 0.5, 8, 8]} />
             <meshStandardMaterial color="#6b7280" metalness={0.7} />
           </mesh>
-          <mesh position={[0, 1, 3]} castShadow>
-            <cylinderGeometry args={[0.5, 0.5, 4, 8]} />
+          <mesh position={[0, 0, 3]} castShadow>
+            <cylinderGeometry args={[0.5, 0.5, 8, 8]} />
             <meshStandardMaterial color="#6b7280" metalness={0.7} />
           </mesh>
           
-          <mesh position={[0, 3.5, -3]}>
+          <mesh position={[0, 5.5, -3]}>
             <boxGeometry args={[1, 3, 0.2]} />
             <meshStandardMaterial color="#d1d5db" />
           </mesh>
-          <mesh position={[0, 3.5, 3]}>
+          <mesh position={[0, 5.5, 3]}>
             <boxGeometry args={[1, 3, 0.2]} />
             <meshStandardMaterial color="#d1d5db" />
           </mesh>
@@ -329,7 +347,7 @@ function Bridge({ position, rotation }: { position: [number, number, number], ro
       ))}
       
       {[-3, 3].map((z, i) => (
-        <mesh key={i} position={[0, 2.2, z]} castShadow>
+        <mesh key={i} position={[0, 4.2, z]} castShadow>
           <boxGeometry args={[50, 0.3, 0.2]} />
           <meshStandardMaterial color="#4b5563" />
         </mesh>
@@ -389,14 +407,45 @@ function Church({ position }: { position: [number, number, number] }) {
 }
 
 function Trees() {
-  const positions: [number, number, number][] = [];
+  const positions: [number, number, number][] = [
+    [50, 2, 80], [55, 2, 85], [45, 2, 90], [60, 2, 75],
+    [-50, 2, 80], [-55, 2, 85], [-45, 2, 90], [-60, 2, 75],
+    [50, 2, -80], [55, 2, -85], [45, 2, -90], [60, 2, -75],
+    [-50, 2, -80], [-55, 2, -85], [-45, 2, -90], [-60, 2, -75],
+    [70, 2, 60], [75, 2, 65], [65, 2, 55], [80, 2, 70],
+    [-70, 2, 60], [-75, 2, 65], [-65, 2, 55], [-80, 2, 70],
+    [70, 2, -60], [75, 2, -65], [65, 2, -55], [80, 2, -70],
+    [-70, 2, -60], [-75, 2, -65], [-65, 2, -55], [-80, 2, -70],
+    [40, 2, 95], [42, 2, 92], [38, 2, 88], [35, 2, 85],
+    [-40, 2, 95], [-42, 2, 92], [-38, 2, 88], [-35, 2, 85],
+    [40, 2, -95], [42, 2, -92], [38, 2, -88], [35, 2, -85],
+    [-40, 2, -95], [-42, 2, -92], [-38, 2, -88], [-35, 2, -85]
+  ];
   
-  for (let i = 0; i < 100; i++) {
-    const x = (Math.random() - 0.5) * 180;
-    const z = (Math.random() - 0.5) * 180;
+  for (let i = 0; i < 50; i++) {
+    let x, z;
+    let valid = false;
     
-    if (Math.abs(x) > 25 || Math.abs(z) < 80) {
-      positions.push([x, 0, z]);
+    while (!valid) {
+      x = (Math.random() - 0.5) * 160;
+      z = (Math.random() - 0.5) * 160;
+      
+      if (Math.abs(x) > 25) {
+        valid = true;
+        for (const pos of positions) {
+          const dx = pos[0] - x;
+          const dz = pos[2] - z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist < 5) {
+            valid = false;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (valid) {
+      positions.push([x, 2, z]);
     }
   }
   
@@ -471,25 +520,25 @@ function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMo
       
       <CarsOnBridge />
       
-      <Church position={[25, 0, -40]} />
+      <Church position={[25, 2, -40]} />
       
       <Building 
-        position={[-30, 0, -50]} 
+        position={[-30, 2, -50]} 
         size={[8, 15, 8]} 
         color="#e5e7eb"
       />
-      <Building position={[-45, 0, -45]} size={[6, 12, 6]} color="#f3f4f6" />
+      <Building position={[-45, 2, -45]} size={[6, 12, 6]} color="#f3f4f6" />
       <Building 
-        position={[40, 0, 50]} 
+        position={[40, 2, 50]} 
         size={[10, 20, 10]} 
         color="#d1d5db"
       />
-      <Building position={[50, 0, 35]} size={[7, 18, 7]} color="#e5e7eb" />
-      <Building position={[-50, 0, 40]} size={[9, 16, 9]} color="#f3f4f6" />
+      <Building position={[50, 2, 35]} size={[7, 18, 7]} color="#e5e7eb" />
+      <Building position={[-50, 2, 40]} size={[9, 16, 9]} color="#f3f4f6" />
       
       <Trees />
       
-      <Player position={[0, 1.5, 50]} joystick={joystick} onPositionChange={onPlayerMove} />
+      <Player position={[0, 3.5, 50]} joystick={joystick} onPositionChange={onPlayerMove} />
       
       <AmbientSound />
     </>
