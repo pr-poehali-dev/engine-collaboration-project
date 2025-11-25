@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { useTexture, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface JoystickState {
@@ -158,15 +158,15 @@ export function Clouds() {
       {cloudPositions.map((pos, i) => (
         <group key={i} position={pos}>
           <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[4, 16, 16]} />
+            <sphereGeometry args={[4, 8, 8]} />
             <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
           </mesh>
           <mesh position={[3, 0, 1]}>
-            <sphereGeometry args={[3, 16, 16]} />
+            <sphereGeometry args={[3, 8, 8]} />
             <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
           </mesh>
           <mesh position={[-3, 0, 0]}>
-            <sphereGeometry args={[3.5, 16, 16]} />
+            <sphereGeometry args={[3.5, 8, 8]} />
             <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
           </mesh>
         </group>
@@ -180,7 +180,7 @@ export function Birds() {
   const birdData = useRef<Array<{ angle: number, radius: number, speed: number, height: number }>>([]);
   
   useEffect(() => {
-    birdData.current = Array.from({ length: 8 }, () => ({
+    birdData.current = Array.from({ length: 5 }, () => ({
       angle: Math.random() * Math.PI * 2,
       radius: 20 + Math.random() * 30,
       speed: 0.3 + Math.random() * 0.4,
@@ -209,7 +209,7 @@ export function Birds() {
   
   return (
     <group ref={birdsRef}>
-      {Array.from({ length: 8 }).map((_, i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <group key={i}>
           <mesh>
             <boxGeometry args={[0.3, 0.2, 0.8]} />
@@ -329,22 +329,18 @@ export function CarsOnBridge() {
     <>
       <group ref={bridge1Lane1}>
         <Car position={[-2, 4.8, -40]} rotation={[0, 0, 0]} color="#ef4444" />
-        <Car position={[-2, 4.8, -20]} rotation={[0, 0, 0]} color="#8b5cf6" />
       </group>
       
       <group ref={bridge1Lane2}>
         <Car position={[2, 4.8, -15]} rotation={[0, Math.PI, 0]} color="#3b82f6" />
-        <Car position={[2, 4.8, -35]} rotation={[0, Math.PI, 0]} color="#ec4899" />
       </group>
       
       <group ref={bridge2Lane1}>
         <Car position={[-10, 4.8, 10]} rotation={[0, Math.PI / 6, 0]} color="#22c55e" />
-        <Car position={[-5, 4.8, 30]} rotation={[0, Math.PI / 6, 0]} color="#f59e0b" />
       </group>
       
       <group ref={bridge2Lane2}>
         <Car position={[10, 4.8, 50]} rotation={[0, Math.PI + Math.PI / 6, 0]} color="#fbbf24" />
-        <Car position={[5, 4.8, 30]} rotation={[0, Math.PI + Math.PI / 6, 0]} color="#06b6d4" />
       </group>
     </>
   );
@@ -358,14 +354,14 @@ export function Bridge({ position, rotation }: { position: [number, number, numb
         <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.4} />
       </mesh>
       
-      {[-20, -10, 0, 10, 20].map((x, i) => (
+      {[-20, 0, 20].map((x, i) => (
         <group key={i} position={[x, 0, 0]}>
           <mesh position={[0, 0, -3]} castShadow>
-            <cylinderGeometry args={[0.5, 0.5, 8, 8]} />
+            <cylinderGeometry args={[0.5, 0.5, 8, 6]} />
             <meshStandardMaterial color="#6b7280" metalness={0.7} />
           </mesh>
           <mesh position={[0, 0, 3]} castShadow>
-            <cylinderGeometry args={[0.5, 0.5, 8, 8]} />
+            <cylinderGeometry args={[0.5, 0.5, 8, 6]} />
             <meshStandardMaterial color="#6b7280" metalness={0.7} />
           </mesh>
           
@@ -564,45 +560,47 @@ export function Church({ position }: { position: [number, number, number] }) {
         <meshStandardMaterial color="#d1d5db" />
       </mesh>
       
-      {Array.from({ length: 12 }).map((_, i) => {
-        const angle = (i / 12) * Math.PI * 2;
-        const radius = 10;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        return (
-          <group key={`fence-${i}`} position={[x, 0, z]}>
-            <mesh position={[0, 1.5, 0]} castShadow>
-              <boxGeometry args={[0.15, 3, 0.15]} />
-              <meshStandardMaterial color="#1f2937" />
-            </mesh>
-            <mesh position={[0, 3.2, 0]} castShadow>
-              <sphereGeometry args={[0.2, 8, 8]} />
-              <meshStandardMaterial color="#fbbf24" metalness={0.8} roughness={0.2} />
-            </mesh>
-          </group>
-        );
-      })}
+      <Instances castShadow>
+        <boxGeometry args={[0.15, 3, 0.15]} />
+        <meshStandardMaterial color="#1f2937" />
+        {Array.from({ length: 12 }).map((_, i) => {
+          const angle = (i / 12) * Math.PI * 2;
+          const radius = 10;
+          const x = Math.cos(angle) * radius;
+          const z = Math.sin(angle) * radius;
+          return <Instance key={`fence-post-${i}`} position={[x, 1.5, z]} />;
+        })}
+      </Instances>
       
-      {Array.from({ length: 12 }).map((_, i) => {
-        const angle1 = (i / 12) * Math.PI * 2;
-        const angle2 = ((i + 1) / 12) * Math.PI * 2;
-        const radius = 10;
-        const x1 = Math.cos(angle1) * radius;
-        const z1 = Math.sin(angle1) * radius;
-        const x2 = Math.cos(angle2) * radius;
-        const z2 = Math.sin(angle2) * radius;
-        const midX = (x1 + x2) / 2;
-        const midZ = (z1 + z2) / 2;
-        const length = Math.sqrt((x2 - x1) ** 2 + (z2 - z1) ** 2);
-        const rotation = Math.atan2(z2 - z1, x2 - x1);
-        
-        return (
-          <mesh key={`fence-bar-${i}`} position={[midX, 1.5, midZ]} rotation={[0, rotation, 0]} castShadow>
-            <boxGeometry args={[length, 0.1, 0.1]} />
-            <meshStandardMaterial color="#1f2937" />
-          </mesh>
-        );
-      })}
+      <Instances castShadow>
+        <sphereGeometry args={[0.2, 6, 6]} />
+        <meshStandardMaterial color="#fbbf24" metalness={0.8} roughness={0.2} />
+        {Array.from({ length: 12 }).map((_, i) => {
+          const angle = (i / 12) * Math.PI * 2;
+          const radius = 10;
+          const x = Math.cos(angle) * radius;
+          const z = Math.sin(angle) * radius;
+          return <Instance key={`fence-top-${i}`} position={[x, 3.2, z]} />;
+        })}
+      </Instances>
+      
+      <Instances castShadow>
+        <boxGeometry args={[5.3, 0.1, 0.1]} />
+        <meshStandardMaterial color="#1f2937" />
+        {Array.from({ length: 12 }).map((_, i) => {
+          const angle1 = (i / 12) * Math.PI * 2;
+          const angle2 = ((i + 1) / 12) * Math.PI * 2;
+          const radius = 10;
+          const x1 = Math.cos(angle1) * radius;
+          const z1 = Math.sin(angle1) * radius;
+          const x2 = Math.cos(angle2) * radius;
+          const z2 = Math.sin(angle2) * radius;
+          const midX = (x1 + x2) / 2;
+          const midZ = (z1 + z2) / 2;
+          const rotation = Math.atan2(z2 - z1, x2 - x1);
+          return <Instance key={`fence-bar-${i}`} position={[midX, 1.5, midZ]} rotation={[0, rotation, 0]} />;
+        })}
+      </Instances>
       
       {[
         [-8, 0, 10],
@@ -652,27 +650,33 @@ export function Church({ position }: { position: [number, number, number] }) {
             <meshStandardMaterial color="#228b22" />
           </mesh>
           
-          {Array.from({ length: 8 }).map((_, j) => {
-            const angle = (j / 8) * Math.PI * 2;
-            const radius = 0.5;
-            const flowerX = Math.cos(angle) * radius;
-            const flowerZ = Math.sin(angle) * radius;
-            const colors = ['#ff1493', '#ff69b4', '#ffd700', '#ff4500', '#9370db'];
-            
-            return (
-              <group key={`flower-${j}`} position={[flowerX, 0.5, flowerZ]}>
-                <mesh position={[0, 0.3, 0]}>
-                  <cylinderGeometry args={[0.02, 0.02, 0.6, 8]} />
-                  <meshStandardMaterial color="#228b22" />
-                </mesh>
-                
-                <mesh position={[0, 0.65, 0]}>
-                  <sphereGeometry args={[0.1, 8, 8]} />
-                  <meshStandardMaterial color={colors[j % colors.length]} />
-                </mesh>
-              </group>
-            );
-          })}
+          <Instances>
+            <cylinderGeometry args={[0.02, 0.02, 0.6, 6]} />
+            <meshStandardMaterial color="#228b22" />
+            {Array.from({ length: 8 }).map((_, j) => {
+              const angle = (j / 8) * Math.PI * 2;
+              const radius = 0.5;
+              const flowerX = Math.cos(angle) * radius;
+              const flowerZ = Math.sin(angle) * radius;
+              return <Instance key={`stem-${j}`} position={[flowerX, 0.8, flowerZ]} />;
+            })}
+          </Instances>
+          
+          {['#ff1493', '#ff69b4', '#ffd700', '#ff4500', '#9370db'].map((color, colorIdx) => (
+            <Instances key={`flower-color-${colorIdx}`}>
+              <sphereGeometry args={[0.1, 6, 6]} />
+              <meshStandardMaterial color={color} />
+              {Array.from({ length: 2 }).map((_, j) => {
+                const flowerIdx = colorIdx * 2 + j;
+                if (flowerIdx >= 8) return null;
+                const angle = (flowerIdx / 8) * Math.PI * 2;
+                const radius = 0.5;
+                const flowerX = Math.cos(angle) * radius;
+                const flowerZ = Math.sin(angle) * radius;
+                return <Instance key={`petal-${j}`} position={[flowerX, 1.15, flowerZ]} />;
+              })}
+            </Instances>
+          ))}
         </group>
       ))}
     </group>
@@ -682,31 +686,37 @@ export function Church({ position }: { position: [number, number, number] }) {
 export function StreetLamps() {
   const lampPositions: [number, number, number][] = [
     [15, 0, 20], [-15, 0, 20], [15, 0, 40], [-15, 0, 40],
-    [15, 0, -20], [-15, 0, -20], [15, 0, -40], [-15, 0, -40],
-    [30, 0, 10], [-30, 0, 10], [30, 0, -10], [-30, 0, -10]
+    [15, 0, -20], [-15, 0, -20], [15, 0, -40], [-15, 0, -40]
   ];
   
   return (
     <>
+      <Instances castShadow>
+        <cylinderGeometry args={[0.15, 0.15, 6, 6]} />
+        <meshStandardMaterial color="#2d3748" />
+        {lampPositions.map((pos, i) => (
+          <Instance key={`pole-${i}`} position={[pos[0], 3, pos[2]]} />
+        ))}
+      </Instances>
+      
+      <Instances castShadow>
+        <boxGeometry args={[0.8, 0.8, 0.8]} />
+        <meshStandardMaterial color="#1a202c" />
+        {lampPositions.map((pos, i) => (
+          <Instance key={`box-${i}`} position={[pos[0], 6.5, pos[2]]} />
+        ))}
+      </Instances>
+      
+      <Instances>
+        <sphereGeometry args={[0.3, 8, 8]} />
+        <meshStandardMaterial color="#fff4d6" emissive="#ffd700" emissiveIntensity={1} />
+        {lampPositions.map((pos, i) => (
+          <Instance key={`light-${i}`} position={[pos[0], 6.5, pos[2]]} />
+        ))}
+      </Instances>
+      
       {lampPositions.map((pos, i) => (
-        <group key={`lamp-${i}`} position={pos}>
-          <mesh position={[0, 3, 0]} castShadow>
-            <cylinderGeometry args={[0.15, 0.15, 6, 8]} />
-            <meshStandardMaterial color="#2d3748" />
-          </mesh>
-          
-          <mesh position={[0, 6.5, 0]} castShadow>
-            <boxGeometry args={[0.8, 0.8, 0.8]} />
-            <meshStandardMaterial color="#1a202c" />
-          </mesh>
-          
-          <pointLight position={[0, 6.5, 0]} intensity={50} distance={20} color="#ffd700" castShadow />
-          
-          <mesh position={[0, 6.5, 0]}>
-            <sphereGeometry args={[0.3, 16, 16]} />
-            <meshStandardMaterial color="#fff4d6" emissive="#ffd700" emissiveIntensity={1} />
-          </mesh>
-        </group>
+        <pointLight key={`pl-${i}`} position={[pos[0], 6.5, pos[2]]} intensity={50} distance={20} color="#ffd700" />
       ))}
     </>
   );
@@ -721,31 +731,26 @@ export function Trees() {
     [70, 2, 60], [75, 2, 65], [65, 2, 55], [80, 2, 70],
     [-70, 2, 60], [-75, 2, 65], [-65, 2, 55], [-80, 2, 70],
     [70, 2, -60], [75, 2, -65], [65, 2, -55], [80, 2, -70],
-    [-70, 2, -60], [-75, 2, -65], [-65, 2, -55], [-80, 2, -70],
-    [40, 2, 95], [42, 2, 92], [38, 2, 88], [35, 2, 85],
-    [-40, 2, 95], [-42, 2, 92], [-38, 2, 88], [-35, 2, 85],
-    [40, 2, -95], [42, 2, -92], [38, 2, -88], [35, 2, -85],
-    [-40, 2, -95], [-42, 2, -92], [-38, 2, -88], [-35, 2, -85],
-    [30, 2, 70], [32, 2, 75], [28, 2, 68], [35, 2, 72],
-    [-30, 2, 70], [-32, 2, 75], [-28, 2, 68], [-35, 2, 72],
-    [30, 2, -70], [32, 2, -75], [28, 2, -68], [35, 2, -72],
-    [-30, 2, -70], [-32, 2, -75], [-28, 2, -68], [-35, 2, -72]
+    [-70, 2, -60], [-75, 2, -65], [-65, 2, -55], [-80, 2, -70]
   ] as [number, number, number][], []);
   
   return (
     <>
-      {positions.map((pos, i) => (
-        <group key={i} position={pos}>
-          <mesh position={[0, 2, 0]} castShadow>
-            <cylinderGeometry args={[0.3, 0.4, 4, 8]} />
-            <meshStandardMaterial color="#78350f" />
-          </mesh>
-          <mesh position={[0, 5, 0]} castShadow>
-            <coneGeometry args={[2, 4, 8]} />
-            <meshStandardMaterial color="#15803d" />
-          </mesh>
-        </group>
-      ))}
+      <Instances castShadow>
+        <cylinderGeometry args={[0.3, 0.4, 4, 6]} />
+        <meshStandardMaterial color="#78350f" />
+        {positions.map((pos, i) => (
+          <Instance key={`trunk-${i}`} position={[pos[0], pos[1] + 2, pos[2]]} />
+        ))}
+      </Instances>
+      
+      <Instances castShadow>
+        <coneGeometry args={[2, 4, 6]} />
+        <meshStandardMaterial color="#15803d" />
+        {positions.map((pos, i) => (
+          <Instance key={`crown-${i}`} position={[pos[0], pos[1] + 5, pos[2]]} />
+        ))}
+      </Instances>
     </>
   );
 }

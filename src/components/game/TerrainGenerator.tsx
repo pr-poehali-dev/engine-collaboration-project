@@ -1,5 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 
 function generateHeightMap(width: number, depth: number, riverZ: number): Float32Array {
@@ -140,7 +141,7 @@ export function RiverValley() {
   
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
-      <planeGeometry args={[40, 200, 120, 120]} />
+      <planeGeometry args={[40, 200, 60, 60]} />
       <meshStandardMaterial 
         ref={materialRef}
         color="#1e40af" 
@@ -159,7 +160,7 @@ export function ProceduralVegetation() {
     const treePositions: Array<[number, number, number, number]> = [];
     const heightData = generateHeightMap(100, 100, 0);
     
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 80; i++) {
       const x = (Math.random() - 0.5) * 180;
       const z = (Math.random() - 0.5) * 180;
       
@@ -180,32 +181,39 @@ export function ProceduralVegetation() {
   
   return (
     <>
-      {trees.map((pos, i) => (
-        <group key={i} position={[pos[0], pos[1], pos[2]]} scale={pos[3]}>
-          <mesh position={[0, 2, 0]} castShadow>
-            <cylinderGeometry args={[0.3, 0.4, 4, 8]} />
-            <meshStandardMaterial color="#78350f" />
-          </mesh>
-          <mesh position={[0, 5, 0]} castShadow>
-            <coneGeometry args={[2, 4, 8]} />
-            <meshStandardMaterial color="#15803d" />
-          </mesh>
-          <mesh position={[0, 6.5, 0]} castShadow>
-            <coneGeometry args={[1.5, 3, 8]} />
-            <meshStandardMaterial color="#166534" />
-          </mesh>
-        </group>
-      ))}
+      <Instances limit={80} castShadow>
+        <cylinderGeometry args={[0.3, 0.4, 4, 6]} />
+        <meshStandardMaterial color="#78350f" />
+        {trees.map((pos, i) => (
+          <Instance key={`trunk-${i}`} position={[pos[0], pos[1] + 2 * pos[3], pos[2]]} scale={pos[3]} />
+        ))}
+      </Instances>
+      
+      <Instances limit={80} castShadow>
+        <coneGeometry args={[2, 4, 6]} />
+        <meshStandardMaterial color="#15803d" />
+        {trees.map((pos, i) => (
+          <Instance key={`crown1-${i}`} position={[pos[0], pos[1] + 5 * pos[3], pos[2]]} scale={pos[3]} />
+        ))}
+      </Instances>
+      
+      <Instances limit={80} castShadow>
+        <coneGeometry args={[1.5, 3, 6]} />
+        <meshStandardMaterial color="#166534" />
+        {trees.map((pos, i) => (
+          <Instance key={`crown2-${i}`} position={[pos[0], pos[1] + 6.5 * pos[3], pos[2]]} scale={pos[3]} />
+        ))}
+      </Instances>
     </>
   );
 }
 
 export function Rocks() {
   const rocks = useMemo(() => {
-    const rockPositions: Array<[number, number, number, number]> = [];
+    const rockPositions: Array<[number, number, number, number, number, number, number]> = [];
     const heightData = generateHeightMap(100, 100, 0);
     
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 20; i++) {
       const x = (Math.random() - 0.5) * 160;
       const z = (Math.random() - 0.5) * 160;
       
@@ -218,7 +226,10 @@ export function Rocks() {
       
       if (height > 4) {
         const scale = 0.5 + Math.random() * 1.5;
-        rockPositions.push([x, height, z, scale]);
+        const rx = Math.random() * 0.3;
+        const ry = Math.random() * Math.PI * 2;
+        const rz = Math.random() * 0.3;
+        rockPositions.push([x, height, z, scale, rx, ry, rz]);
       }
     }
     
@@ -227,26 +238,22 @@ export function Rocks() {
   
   return (
     <>
-      {rocks.map((pos, i) => (
-        <mesh 
-          key={i} 
-          position={[pos[0], pos[1] + pos[3] * 0.5, pos[2]]} 
-          scale={pos[3]}
-          castShadow
-          rotation={[
-            Math.random() * 0.3,
-            Math.random() * Math.PI * 2,
-            Math.random() * 0.3
-          ]}
-        >
-          <dodecahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial 
-            color="#78716c" 
-            roughness={0.9}
-            metalness={0.1}
+      <Instances limit={20} castShadow>
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial 
+          color="#78716c" 
+          roughness={0.9}
+          metalness={0.1}
+        />
+        {rocks.map((pos, i) => (
+          <Instance 
+            key={i} 
+            position={[pos[0], pos[1] + pos[3] * 0.5, pos[2]]} 
+            scale={pos[3]}
+            rotation={[pos[4], pos[5], pos[6]]}
           />
-        </mesh>
-      ))}
+        ))}
+      </Instances>
     </>
   );
 }
