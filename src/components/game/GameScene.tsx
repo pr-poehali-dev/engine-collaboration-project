@@ -9,7 +9,8 @@ import {
   Building, 
   Player,
   AmbientSound,
-  StreetLamps
+  StreetLamps,
+  RoadNetwork
 } from './GameObjects';
 import { 
   ProceduralTerrain, 
@@ -67,8 +68,10 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
       <Clouds />
       <Birds />
       
-      <Bridge position={[0, 0, -30]} rotation={[0, 0, 0]} />
-      <Bridge position={[0, 0, 30]} rotation={[0, Math.PI / 6, 0]} />
+      <RoadNetwork />
+      
+      <Bridge position={[0, 0, -40]} rotation={[0, 0, 0]} height={5} length={60} />
+      <Bridge position={[0, 0, 35]} rotation={[0, Math.PI / 6, 0]} height={6.5} length={70} />
       
       <CarsOnBridge />
       
