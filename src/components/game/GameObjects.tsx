@@ -397,10 +397,13 @@ export function Building({ position, size, color, textureUrl }: {
   textureUrl?: string
 }) {
   let texture = null;
+  let doorTexture = null;
   try {
     texture = textureUrl ? useTexture(textureUrl) : null;
+    doorTexture = useTexture('https://cdn.poehali.dev/projects/1dd9ac1a-e0e4-4079-ba92-59a736b6e43e/files/f45b2452-b0df-4f50-968d-b706a34933c0.jpg');
   } catch (e) {
     texture = null;
+    doorTexture = null;
   }
   
   return (
@@ -419,16 +422,34 @@ export function Building({ position, size, color, textureUrl }: {
         <coneGeometry args={[size[0] * 0.6, 2, 4]} />
         <meshStandardMaterial color="#dc2626" />
       </mesh>
+      
+      <mesh position={[0, 1.5, size[2] / 2 + 0.05]} castShadow>
+        <boxGeometry args={[1.2, 2.5, 0.2]} />
+        <meshStandardMaterial 
+          map={doorTexture || undefined}
+          color={doorTexture ? '#ffffff' : '#6b4423'} 
+        />
+      </mesh>
+      
+      {[-size[0] / 4, size[0] / 4].map((x, i) => (
+        <mesh key={`window-${i}`} position={[x, size[1] * 0.6, size[2] / 2 + 0.05]} castShadow>
+          <boxGeometry args={[0.8, 1, 0.15]} />
+          <meshStandardMaterial color="#87ceeb" transparent opacity={0.7} />
+        </mesh>
+      ))}
     </group>
   );
 }
 
 export function Church({ position }: { position: [number, number, number] }) {
   let texture = null;
+  let gateTexture = null;
   try {
     texture = useTexture('https://cdn.poehali.dev/files/5e3ce736-91c3-4bc0-a772-218476e56221.jpeg');
+    gateTexture = useTexture('https://cdn.poehali.dev/projects/1dd9ac1a-e0e4-4079-ba92-59a736b6e43e/files/a8e864b1-3b4d-4e6e-bdd1-afc0a264ecea.jpg');
   } catch (e) {
     texture = null;
+    gateTexture = null;
   }
   
   return (
@@ -482,9 +503,27 @@ export function Church({ position }: { position: [number, number, number] }) {
         <meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.1} />
       </mesh>
       
-      <mesh position={[0, 2, 7.5]} castShadow>
-        <boxGeometry args={[3, 4, 0.5]} />
-        <meshStandardMaterial color="#4b5563" />
+      <mesh position={[-1.8, 2.5, 8.1]} castShadow>
+        <boxGeometry args={[2, 4.5, 0.3]} />
+        <meshStandardMaterial 
+          map={gateTexture || undefined}
+          color={gateTexture ? '#ffffff' : '#8b4513'} 
+        />
+      </mesh>
+      <mesh position={[1.8, 2.5, 8.1]} castShadow>
+        <boxGeometry args={[2, 4.5, 0.3]} />
+        <meshStandardMaterial 
+          map={gateTexture || undefined}
+          color={gateTexture ? '#ffffff' : '#8b4513'} 
+        />
+      </mesh>
+      
+      <mesh position={[0, 5.2, 8.1]} castShadow>
+        <boxGeometry args={[4.5, 0.8, 0.3]} />
+        <meshStandardMaterial 
+          map={gateTexture || undefined}
+          color={gateTexture ? '#ffffff' : '#8b4513'} 
+        />
       </mesh>
       
       {[-4, -2, 2, 4].map((x, i) => (
