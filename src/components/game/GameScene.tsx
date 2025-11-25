@@ -32,38 +32,19 @@ function TexturePreloader() {
 }
 
 function RenderPipeline() {
-  const { gl, scene, camera } = useThree();
+  const { gl } = useThree();
   const frameCount = useRef(0);
   
   useEffect(() => {
-    console.log('[Pipeline] Initializing render pipeline...');
-    
-    gl.autoClear = true;
-    gl.autoClearColor = true;
-    gl.autoClearDepth = true;
-    gl.autoClearStencil = true;
-    
-    console.log('[Pipeline] Buffers configured:', {
-      autoClear: gl.autoClear,
-      sortObjects: gl.sortObjects
-    });
+    console.log('[Pipeline] Ready');
   }, [gl]);
   
   useFrame(() => {
     frameCount.current++;
     
-    if (frameCount.current % 60 === 0) {
-      console.log('[Pipeline] Frame checkpoint:', {
-        frame: frameCount.current,
-        drawCalls: gl.info.render.calls,
-        triangles: gl.info.render.triangles,
-        textures: gl.info.memory.textures,
-        geometries: gl.info.memory.geometries
-      });
+    if (frameCount.current % 120 === 0) {
+      console.log('[Frame]', frameCount.current, 'calls:', gl.info.render.calls);
     }
-    
-    gl.clearColor();
-    gl.clearDepth();
   });
   
   return null;
@@ -72,27 +53,10 @@ function RenderPipeline() {
 export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMove: (pos: [number, number, number]) => void }) {
   const frameSkip = useMemo(() => ({ count: 0 }), []);
   const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || 'ontouchstart' in window);
-  const { gl, camera } = useThree();
   
   useEffect(() => {
-    console.log('[Scene] Scene mounted with camera:', {
-      position: camera.position,
-      fov: (camera as THREE.PerspectiveCamera).fov,
-      near: camera.near,
-      far: camera.far
-    });
-    
-    if (gl.getContext()) {
-      const glContext = gl.getContext() as WebGLRenderingContext;
-      console.log('[Scene] WebGL capabilities:', {
-        vendor: glContext.getParameter(glContext.VENDOR),
-        renderer: glContext.getParameter(glContext.RENDERER),
-        version: glContext.getParameter(glContext.VERSION),
-        maxTextureSize: glContext.getParameter(glContext.MAX_TEXTURE_SIZE),
-        maxVertexAttribs: glContext.getParameter(glContext.MAX_VERTEX_ATTRIBS)
-      });
-    }
-  }, [gl, camera]);
+    console.log('[Scene] Mounted, mobile:', isMobile);
+  }, [isMobile]);
   
   useFrame(() => {
     frameSkip.count++;
@@ -166,9 +130,6 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
       <Building position={[-60, 5, 5]} size={[8, 18, 8]} color="#f3f4f6" />
       <Building position={[50, 4, -10]} size={[12, 16, 12]} color="#e5e7eb" />
       <Building position={[65, 5, 10]} size={[9, 20, 9]} color="#d1d5db" />
-      
-      <ProceduralVegetation />
-      <Rocks />
 
       
       <Player position={[0, 8, 50]} joystick={joystick} onPositionChange={onPlayerMove} />

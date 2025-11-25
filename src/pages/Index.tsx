@@ -21,46 +21,37 @@ export default function Index() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleCreated = useCallback(({ gl, scene, camera }: any) => {
-    console.log('[Init] Starting WebGL initialization...');
-    
-    gl.setClearColor(new THREE.Color('#87ceeb'));
-    gl.setPixelRatio(window.devicePixelRatio);
-    
-    gl.shadowMap.enabled = !isMobile;
-    gl.shadowMap.type = THREE.PCFSoftShadowMap;
-    
-    gl.capabilities.logarithmicDepthBuffer = false;
-    gl.capabilities.maxTextures = Math.min(gl.capabilities.maxTextures, 16);
-    
-    if (camera) {
-      camera.near = 0.1;
-      camera.far = 1000;
-      camera.updateProjectionMatrix();
-      console.log('[Init] Camera matrices updated');
-    }
-    
-    console.log('[Init] WebGL context ready:', {
-      renderer: gl.info.render,
-      memory: gl.info.memory,
-      capabilities: {
-        maxTextures: gl.capabilities.maxTextures,
-        maxVertexUniforms: gl.capabilities.maxVertexUniforms
+  const handleCreated = useCallback(({ gl, camera }: any) => {
+    try {
+      console.log('[Init] Starting WebGL initialization...');
+      
+      gl.setClearColor(new THREE.Color('#87ceeb'));
+      
+      if (camera) {
+        camera.near = 0.1;
+        camera.far = 1000;
+        camera.updateProjectionMatrix();
+        console.log('[Init] Camera ready');
       }
-    });
+      
+      console.log('[Init] WebGL context ready');
+      
+    } catch (error) {
+      console.error('[Init] Setup error:', error);
+    }
     
     gl.domElement.addEventListener('webglcontextlost', (e: Event) => {
       e.preventDefault();
-      console.error('[WebGL] Context lost, attempting restore...');
+      console.error('[WebGL] Context lost');
       setGlError(true);
       setTimeout(() => setGlError(false), 100);
     });
     
     gl.domElement.addEventListener('webglcontextrestored', () => {
-      console.log('[WebGL] Context restored successfully');
+      console.log('[WebGL] Context restored');
       setGlError(false);
     });
-  }, [isMobile]);
+  }, []);
 
   return (
     <div className="w-full h-screen relative">
