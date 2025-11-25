@@ -1,44 +1,52 @@
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sky, Environment, useTexture, Text } from '@react-three/drei';
+import { OrbitControls, Sky, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
-function Player({ position }: { position: [number, number, number] }) {
+interface JoystickState {
+  x: number;
+  z: number;
+}
+
+function Player({ position, joystick }: { position: [number, number, number], joystick: JoystickState }) {
   const playerRef = useRef<THREE.Mesh>(null);
-  const [velocity, setVelocity] = useState({ x: 0, z: 0 });
+  const keysRef = useRef<Record<string, boolean>>({});
   const speed = 0.1;
   
-  useFrame(() => {
-    if (!playerRef.current) return;
-    
-    const keys: Record<string, boolean> = {};
-    
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      keys[e.key.toLowerCase()] = true;
+      keysRef.current[e.key.toLowerCase()] = true;
     };
     
     const handleKeyUp = (e: KeyboardEvent) => {
-      keys[e.key.toLowerCase()] = false;
+      keysRef.current[e.key.toLowerCase()] = false;
     };
     
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     
-    let newVelX = 0;
-    let newVelZ = 0;
-    
-    if (keys['w'] || keys['ц']) newVelZ -= speed;
-    if (keys['s'] || keys['ы']) newVelZ += speed;
-    if (keys['a'] || keys['ф']) newVelX -= speed;
-    if (keys['d'] || keys['в']) newVelX += speed;
-    
-    playerRef.current.position.x += newVelX;
-    playerRef.current.position.z += newVelZ;
-    
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
+  }, []);
+  
+  useFrame(() => {
+    if (!playerRef.current) return;
+    
+    let newVelX = 0;
+    let newVelZ = 0;
+    
+    if (keysRef.current['w'] || keysRef.current['ц']) newVelZ -= speed;
+    if (keysRef.current['s'] || keysRef.current['ы']) newVelZ += speed;
+    if (keysRef.current['a'] || keysRef.current['ф']) newVelX -= speed;
+    if (keysRef.current['d'] || keysRef.current['в']) newVelX += speed;
+    
+    newVelX += joystick.x * speed;
+    newVelZ += joystick.z * speed;
+    
+    playerRef.current.position.x += newVelX;
+    playerRef.current.position.z += newVelZ;
   });
   
   return (
@@ -63,18 +71,16 @@ function Ground() {
 
 function River() {
   return (
-    <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]} receiveShadow>
-        <planeGeometry args={[40, 200]} />
-        <meshStandardMaterial 
-          color="#3b82f6" 
-          transparent 
-          opacity={0.6}
-          roughness={0.1}
-          metalness={0.8}
-        />
-      </mesh>
-    </>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]} receiveShadow>
+      <planeGeometry args={[40, 200]} />
+      <meshStandardMaterial 
+        color="#3b82f6" 
+        transparent 
+        opacity={0.6}
+        roughness={0.1}
+        metalness={0.8}
+      />
+    </mesh>
   );
 }
 
@@ -194,7 +200,7 @@ function Trees() {
   );
 }
 
-function Scene() {
+function Scene({ joystick }: { joystick: JoystickState }) {
   return (
     <>
       <Sky 
@@ -236,12 +242,89 @@ function Scene() {
       
       <Trees />
       
-      <Player position={[0, 1.5, 50]} />
+      <Player position={[0, 1.5, 50]} joystick={joystick} />
     </>
   );
 }
 
+function VirtualJoystick({ onMove }: { onMove: (x: number, z: number) => void }) {
+  const [active, setActive] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const startPos = useRef({ x: 0, y: 0 });
+  const joystickRef = useRef<HTMLDivElement>(null);
+
+  const handleStart = (clientX: number, clientY: number) => {
+    setActive(true);
+    startPos.current = { x: clientX, y: clientY };
+  };
+
+  const handleMove = (clientX: number, clientY: number) => {
+    if (!active) return;
+    
+    const deltaX = clientX - startPos.current.x;
+    const deltaY = clientY - startPos.current.y;
+    
+    const maxDistance = 50;
+    const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), maxDistance);
+    const angle = Math.atan2(deltaY, deltaX);
+    
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+    
+    setPosition({ x, y });
+    
+    onMove(x / maxDistance, y / maxDistance);
+  };
+
+  const handleEnd = () => {
+    setActive(false);
+    setPosition({ x: 0, y: 0 });
+    onMove(0, 0);
+  };
+
+  return (
+    <div
+      ref={joystickRef}
+      className="absolute bottom-8 left-8 w-32 h-32 bg-white/20 rounded-full backdrop-blur-sm border-4 border-white/30 touch-none"
+      onTouchStart={(e) => {
+        e.preventDefault();
+        handleStart(e.touches[0].clientX, e.touches[0].clientY);
+      }}
+      onTouchMove={(e) => {
+        e.preventDefault();
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }}
+      onTouchEnd={handleEnd}
+      onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
+      onMouseMove={(e) => active && handleMove(e.clientX, e.clientY)}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
+    >
+      <div
+        className="absolute w-12 h-12 bg-white/60 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform shadow-lg"
+        style={{
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+        }}
+      />
+    </div>
+  );
+}
+
 export default function Index() {
+  const [joystick, setJoystick] = useState<JoystickState>({ x: 0, z: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <div className="w-full h-screen relative">
       <Canvas
@@ -254,7 +337,7 @@ export default function Index() {
         }}
       >
         <Suspense fallback={null}>
-          <Scene />
+          <Scene joystick={joystick} />
           <OrbitControls 
             enablePan={true}
             enableZoom={true}
@@ -262,16 +345,28 @@ export default function Index() {
             maxPolarAngle={Math.PI / 2.1}
             minDistance={5}
             maxDistance={100}
+            touches={{
+              ONE: THREE.TOUCH.ROTATE,
+              TWO: THREE.TOUCH.DOLLY_PAN
+            }}
           />
           <Environment preset="sunset" />
         </Suspense>
       </Canvas>
       
-      <div className="absolute top-4 left-4 bg-black/70 text-white p-4 rounded-lg backdrop-blur-sm">
+      <div className="absolute top-4 left-4 bg-black/70 text-white p-4 rounded-lg backdrop-blur-sm z-10">
         <h1 className="text-2xl font-bold mb-2">Сызрань 3D</h1>
-        <p className="text-sm">Управление: WASD или стрелки</p>
-        <p className="text-sm">Камера: Мышь + колесо</p>
+        <p className="text-sm">
+          {isMobile ? 'Джойстик внизу слева' : 'Управление: WASD'}
+        </p>
+        <p className="text-sm">Камера: {isMobile ? 'Свайп' : 'Мышь + колесо'}</p>
       </div>
+
+      {isMobile && (
+        <VirtualJoystick 
+          onMove={(x, z) => setJoystick({ x, z })} 
+        />
+      )}
     </div>
   );
 }
