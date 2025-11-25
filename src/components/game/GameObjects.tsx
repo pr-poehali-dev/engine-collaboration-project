@@ -426,7 +426,7 @@ export function Building({ position, size, color, textureUrl }: {
 export function Church({ position }: { position: [number, number, number] }) {
   let texture = null;
   try {
-    texture = useTexture('https://cdn.poehali.dev/files/acf66156-02ef-416b-a665-ba155b86b286.jpeg');
+    texture = useTexture('https://cdn.poehali.dev/files/5e3ce736-91c3-4bc0-a772-218476e56221.jpeg');
   } catch (e) {
     texture = null;
   }
