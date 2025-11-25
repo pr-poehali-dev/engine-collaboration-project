@@ -1,6 +1,6 @@
-import { Suspense, useRef, useState, useEffect } from 'react';
+import { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sky, Environment } from '@react-three/drei';
+import { OrbitControls, Sky, Environment, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface JoystickState {
@@ -270,49 +270,43 @@ function Car({ position, rotation, color }: {
 }
 
 function CarsOnBridge() {
-  const carsRef = useRef<THREE.Group>(null);
-  
-  const cars = [
-    { id: 1, startZ: -40, color: '#ef4444', speed: 0.15, bridge: 1 },
-    { id: 2, startZ: -25, color: '#3b82f6', speed: 0.12, bridge: 1 },
-    { id: 3, startZ: 40, color: '#22c55e', speed: -0.13, reverse: true, bridge: 2 },
-    { id: 4, startZ: 25, color: '#fbbf24', speed: -0.14, reverse: true, bridge: 2 }
-  ];
+  const group1Ref = useRef<THREE.Group>(null);
+  const group2Ref = useRef<THREE.Group>(null);
   
   useFrame(() => {
-    if (!carsRef.current) return;
-    
-    carsRef.current.children.forEach((car, i) => {
-      const carData = cars[i];
-      car.position.z += carData.speed;
-      
-      if (carData.bridge === 1) {
-        if (carData.speed > 0 && car.position.z > -5) {
+    if (group1Ref.current) {
+      group1Ref.current.children.forEach((car, i) => {
+        car.position.z += i === 0 ? 0.15 : 0.12;
+        
+        if (car.position.z > -5) {
           car.position.z = -55;
-        } else if (carData.speed < 0 && car.position.z < -55) {
-          car.position.z = -5;
         }
-      } else {
-        if (carData.speed > 0 && car.position.z > 55) {
-          car.position.z = 5;
-        } else if (carData.speed < 0 && car.position.z < 5) {
+      });
+    }
+    
+    if (group2Ref.current) {
+      group2Ref.current.children.forEach((car, i) => {
+        car.position.z -= i === 0 ? 0.13 : 0.14;
+        
+        if (car.position.z < 5) {
           car.position.z = 55;
         }
-      }
-    });
+      });
+    }
   });
   
   return (
-    <group ref={carsRef}>
-      {cars.map((car, i) => (
-        <Car 
-          key={car.id}
-          position={[-3, 4.8, car.startZ]} 
-          rotation={car.reverse ? [0, Math.PI, 0] : [0, 0, 0]}
-          color={car.color}
-        />
-      ))}
-    </group>
+    <>
+      <group ref={group1Ref}>
+        <Car position={[-3, 4.8, -40]} rotation={[0, 0, 0]} color="#ef4444" />
+        <Car position={[-3, 4.8, -25]} rotation={[0, 0, 0]} color="#3b82f6" />
+      </group>
+      
+      <group ref={group2Ref}>
+        <Car position={[3, 4.8, 40]} rotation={[0, Math.PI, 0]} color="#22c55e" />
+        <Car position={[3, 4.8, 25]} rotation={[0, Math.PI, 0]} color="#fbbf24" />
+      </group>
+    </>
   );
 }
 
@@ -356,17 +350,26 @@ function Bridge({ position, rotation }: { position: [number, number, number], ro
   );
 }
 
-function Building({ position, size, color }: { 
+function Building({ position, size, color, textureUrl }: { 
   position: [number, number, number], 
   size: [number, number, number],
-  color: string
+  color: string,
+  textureUrl?: string
 }) {
+  let texture = null;
+  try {
+    texture = textureUrl ? useTexture(textureUrl) : null;
+  } catch (e) {
+    texture = null;
+  }
+  
   return (
     <group position={position}>
       <mesh position={[0, size[1] / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={size} />
         <meshStandardMaterial 
-          color={color} 
+          map={texture || undefined}
+          color={texture ? '#ffffff' : color} 
           roughness={0.7} 
           metalness={0.3} 
         />
@@ -381,11 +384,18 @@ function Building({ position, size, color }: {
 }
 
 function Church({ position }: { position: [number, number, number] }) {
+  let texture = null;
+  try {
+    texture = useTexture('https://cdn.poehali.dev/files/acf66156-02ef-416b-a665-ba155b86b286.jpeg');
+  } catch (e) {
+    texture = null;
+  }
+  
   return (
     <group position={position}>
       <mesh position={[0, 5, 0]} castShadow receiveShadow>
         <boxGeometry args={[8, 10, 8]} />
-        <meshStandardMaterial color="#f3f4f6" />
+        <meshStandardMaterial map={texture || undefined} color={texture ? '#ffffff' : '#f3f4f6'} />
       </mesh>
       
       <mesh position={[0, 12, 0]} castShadow>
@@ -407,7 +417,7 @@ function Church({ position }: { position: [number, number, number] }) {
 }
 
 function Trees() {
-  const positions: [number, number, number][] = [
+  const positions = useMemo(() => [
     [50, 2, 80], [55, 2, 85], [45, 2, 90], [60, 2, 75],
     [-50, 2, 80], [-55, 2, 85], [-45, 2, 90], [-60, 2, 75],
     [50, 2, -80], [55, 2, -85], [45, 2, -90], [60, 2, -75],
@@ -419,33 +429,12 @@ function Trees() {
     [40, 2, 95], [42, 2, 92], [38, 2, 88], [35, 2, 85],
     [-40, 2, 95], [-42, 2, 92], [-38, 2, 88], [-35, 2, 85],
     [40, 2, -95], [42, 2, -92], [38, 2, -88], [35, 2, -85],
-    [-40, 2, -95], [-42, 2, -92], [-38, 2, -88], [-35, 2, -85]
-  ];
-  
-  for (let i = 0; i < 50; i++) {
-    let x, z;
-    let valid = false;
-    
-    while (!valid) {
-      x = (Math.random() - 0.5) * 160;
-      z = (Math.random() - 0.5) * 160;
-      
-      if (Math.abs(x) > 25) {
-        valid = true;
-        for (const pos of positions) {
-          const dx = pos[0] - x;
-          const dz = pos[2] - z;
-          const dist = Math.sqrt(dx * dx + dz * dz);
-          if (dist < 5) {
-            valid = false;
-            break;
-          }
-        }
-      }
-    }
-    
-    if (valid) {
-      positions.push([x, 2, z]);
+    [-40, 2, -95], [-42, 2, -92], [-38, 2, -88], [-35, 2, -85],
+    [30, 2, 70], [32, 2, 75], [28, 2, 68], [35, 2, 72],
+    [-30, 2, 70], [-32, 2, 75], [-28, 2, 68], [-35, 2, 72],
+    [30, 2, -70], [32, 2, -75], [28, 2, -68], [35, 2, -72],
+    [-30, 2, -70], [-32, 2, -75], [-28, 2, -68], [-35, 2, -72]
+  ] as [number, number, number][], []
     }
   }
   
@@ -526,12 +515,14 @@ function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onPlayerMo
         position={[-30, 2, -50]} 
         size={[8, 15, 8]} 
         color="#e5e7eb"
+        textureUrl="https://cdn.poehali.dev/files/f13c35c5-5656-433c-9c5e-0c50f6dd4b72.jpeg"
       />
       <Building position={[-45, 2, -45]} size={[6, 12, 6]} color="#f3f4f6" />
       <Building 
         position={[40, 2, 50]} 
         size={[10, 20, 10]} 
         color="#d1d5db"
+        textureUrl="https://cdn.poehali.dev/files/b4af7ac0-96e9-4ae1-9fc2-0e3f8b4f10f8.jpeg"
       />
       <Building position={[50, 2, 35]} size={[7, 18, 7]} color="#e5e7eb" />
       <Building position={[-50, 2, 40]} size={[9, 16, 9]} color="#f3f4f6" />
