@@ -270,38 +270,56 @@ function Car({ position, rotation, color }: {
 }
 
 export function CarsOnBridge() {
-  const group1Ref = useRef<THREE.Group>(null);
-  const group2Ref = useRef<THREE.Group>(null);
+  const bridge1Lane1 = useRef<THREE.Group>(null);
+  const bridge1Lane2 = useRef<THREE.Group>(null);
+  const bridge2Lane1 = useRef<THREE.Group>(null);
+  const bridge2Lane2 = useRef<THREE.Group>(null);
   
   useFrame(() => {
-    if (group1Ref.current) {
-      group1Ref.current.children.forEach((car, i) => {
-        car.position.z += i === 0 ? 0.15 : 0.12;
-        
+    if (bridge1Lane1.current) {
+      bridge1Lane1.current.children.forEach((car) => {
+        car.position.z += 0.15;
         if (car.position.z > -5) {
           car.position.z = -55;
+          car.position.x = -2;
         }
       });
     }
     
-    if (group2Ref.current) {
-      group2Ref.current.children.forEach((car, i) => {
-        const speed = i === 0 ? 0.13 : 0.14;
+    if (bridge1Lane2.current) {
+      bridge1Lane2.current.children.forEach((car) => {
+        car.position.z -= 0.12;
+        if (car.position.z < -55) {
+          car.position.z = -5;
+          car.position.x = 2;
+        }
+      });
+    }
+    
+    if (bridge2Lane1.current) {
+      bridge2Lane1.current.children.forEach((car) => {
         const angle = Math.PI / 6;
+        const speed = 0.15;
+        car.position.x += Math.sin(angle) * speed;
+        car.position.z += Math.cos(angle) * speed;
         
-        car.position.x += Math.sin(angle) * speed * (i === 0 ? -1 : 1);
-        car.position.z += Math.cos(angle) * speed * (i === 0 ? -1 : 1);
+        if (car.position.z > 55) {
+          car.position.z = 5;
+          car.position.x = -10;
+        }
+      });
+    }
+    
+    if (bridge2Lane2.current) {
+      bridge2Lane2.current.children.forEach((car) => {
+        const angle = Math.PI / 6;
+        const speed = 0.13;
+        car.position.x -= Math.sin(angle) * speed;
+        car.position.z -= Math.cos(angle) * speed;
         
-        if (i === 0) {
-          if (car.position.z < 5) {
-            car.position.z = 55;
-            car.position.x = 3;
-          }
-        } else {
-          if (car.position.z > 55) {
-            car.position.z = 5;
-            car.position.x = 3;
-          }
+        if (car.position.z < 5) {
+          car.position.z = 55;
+          car.position.x = 10;
         }
       });
     }
@@ -309,14 +327,24 @@ export function CarsOnBridge() {
   
   return (
     <>
-      <group ref={group1Ref}>
-        <Car position={[-3, 4.8, -40]} rotation={[0, 0, 0]} color="#ef4444" />
-        <Car position={[-3, 4.8, -25]} rotation={[0, 0, 0]} color="#3b82f6" />
+      <group ref={bridge1Lane1}>
+        <Car position={[-2, 4.8, -40]} rotation={[0, 0, 0]} color="#ef4444" />
+        <Car position={[-2, 4.8, -20]} rotation={[0, 0, 0]} color="#8b5cf6" />
       </group>
       
-      <group ref={group2Ref}>
-        <Car position={[3, 4.8, 40]} rotation={[0, Math.PI + Math.PI / 6, 0]} color="#22c55e" />
-        <Car position={[3, 4.8, 25]} rotation={[0, Math.PI / 6, 0]} color="#fbbf24" />
+      <group ref={bridge1Lane2}>
+        <Car position={[2, 4.8, -15]} rotation={[0, Math.PI, 0]} color="#3b82f6" />
+        <Car position={[2, 4.8, -35]} rotation={[0, Math.PI, 0]} color="#ec4899" />
+      </group>
+      
+      <group ref={bridge2Lane1}>
+        <Car position={[-10, 4.8, 10]} rotation={[0, Math.PI / 6, 0]} color="#22c55e" />
+        <Car position={[-5, 4.8, 30]} rotation={[0, Math.PI / 6, 0]} color="#f59e0b" />
+      </group>
+      
+      <group ref={bridge2Lane2}>
+        <Car position={[10, 4.8, 50]} rotation={[0, Math.PI + Math.PI / 6, 0]} color="#fbbf24" />
+        <Car position={[5, 4.8, 30]} rotation={[0, Math.PI + Math.PI / 6, 0]} color="#06b6d4" />
       </group>
     </>
   );
