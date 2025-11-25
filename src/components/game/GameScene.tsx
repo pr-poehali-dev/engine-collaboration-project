@@ -130,7 +130,9 @@ export function Scene({ joystick, onPlayerMove }: { joystick: JoystickState, onP
       <Building position={[-60, 5, 5]} size={[8, 18, 8]} color="#f3f4f6" />
       <Building position={[50, 4, -10]} size={[12, 16, 12]} color="#e5e7eb" />
       <Building position={[65, 5, 10]} size={[9, 20, 9]} color="#d1d5db" />
-
+      
+      <ProceduralVegetation />
+      <Rocks />
       
       <Player position={[0, 8, 50]} joystick={joystick} onPositionChange={onPlayerMove} />
       

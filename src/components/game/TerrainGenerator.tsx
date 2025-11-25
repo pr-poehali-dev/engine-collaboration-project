@@ -173,7 +173,7 @@ export function ProceduralVegetation() {
       treePositions.push([i, 3, -8, 0.85]);
     }
     
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 25; i++) {
       const x = (Math.random() - 0.5) * 180;
       const z = (Math.random() - 0.5) * 180;
       
@@ -194,29 +194,22 @@ export function ProceduralVegetation() {
   
   return (
     <>
-      <Instances limit={100}>
-        <cylinderGeometry args={[0.3, 0.4, 4, 6]} />
-        <meshStandardMaterial color="#78350f" />
-        {trees.map((pos, i) => (
-          <Instance key={`trunk-${i}`} position={[pos[0], pos[1] + 2 * pos[3], pos[2]]} scale={pos[3]} />
-        ))}
-      </Instances>
-      
-      <Instances limit={100}>
-        <coneGeometry args={[2, 4, 6]} />
-        <meshStandardMaterial color="#15803d" />
-        {trees.map((pos, i) => (
-          <Instance key={`crown1-${i}`} position={[pos[0], pos[1] + 5 * pos[3], pos[2]]} scale={pos[3]} />
-        ))}
-      </Instances>
-      
-      <Instances limit={100}>
-        <coneGeometry args={[1.5, 3, 6]} />
-        <meshStandardMaterial color="#166534" />
-        {trees.map((pos, i) => (
-          <Instance key={`crown2-${i}`} position={[pos[0], pos[1] + 6.5 * pos[3], pos[2]]} scale={pos[3]} />
-        ))}
-      </Instances>
+      {trees.map((pos, i) => (
+        <group key={i} position={[pos[0], pos[1], pos[2]]}>
+          <mesh position={[0, 2 * pos[3], 0]} scale={pos[3]}>
+            <cylinderGeometry args={[0.3, 0.4, 4, 6]} />
+            <meshStandardMaterial color="#78350f" />
+          </mesh>
+          <mesh position={[0, 5 * pos[3], 0]} scale={pos[3]}>
+            <coneGeometry args={[2, 4, 6]} />
+            <meshStandardMaterial color="#15803d" />
+          </mesh>
+          <mesh position={[0, 6.5 * pos[3], 0]} scale={pos[3]}>
+            <coneGeometry args={[1.5, 3, 6]} />
+            <meshStandardMaterial color="#166534" />
+          </mesh>
+        </group>
+      ))}
     </>
   );
 }
@@ -226,7 +219,7 @@ export function Rocks() {
     const rockPositions: Array<[number, number, number, number, number, number, number]> = [];
     const heightData = generateHeightMap(100, 100, 0);
     
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 15; i++) {
       const x = (Math.random() - 0.5) * 160;
       const z = (Math.random() - 0.5) * 160;
       
@@ -251,22 +244,22 @@ export function Rocks() {
   
   return (
     <>
-      <Instances limit={20} castShadow>
-        <dodecahedronGeometry args={[1, 0]} />
-        <meshStandardMaterial 
-          color="#78716c" 
-          roughness={0.9}
-          metalness={0.1}
-        />
-        {rocks.map((pos, i) => (
-          <Instance 
-            key={i} 
-            position={[pos[0], pos[1] + pos[3] * 0.5, pos[2]]} 
-            scale={pos[3]}
-            rotation={[pos[4], pos[5], pos[6]]}
+      {rocks.map((pos, i) => (
+        <mesh 
+          key={i} 
+          position={[pos[0], pos[1] + pos[3] * 0.5, pos[2]]} 
+          scale={pos[3]}
+          rotation={[pos[4], pos[5], pos[6]]}
+          castShadow
+        >
+          <dodecahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial 
+            color="#78716c" 
+            roughness={0.9}
+            metalness={0.1}
           />
-        ))}
-      </Instances>
+        </mesh>
+      ))}
     </>
   );
 }
